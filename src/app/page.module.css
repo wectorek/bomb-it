@@ -148,3 +148,35 @@ a.secondary {
   padding: 0.1em 0.4em;
   border-radius: 6px;
 }
+
+.table {
+  --board-size: 15;
+  width: min(100%, 90vmin);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--board-size), 1fr);
+  grid-template-rows: repeat(var(--board-size), 1fr);
+  border-collapse: collapse;
+  border: 1px solid #ffffff;
+}
+
+.table tbody,
+.table tr {
+  display: contents;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ffffff;
+  padding: 0;
+  overflow: hidden;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(8px, 1.4vmin, 12px);
+}
+.player {
+  background-color: #00ff00;
+  color: #000000;
+}
