@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { generateMaze, renderWall, checkCollision } from "./maze";
 import { createMapBorder, renderBorder } from "./border";
-import { pickEmptyPosition } from "./bot";
+import { pickEmptyPosition, nextBotMove, BOT_MOVE_INTERVAL_MS } from "./bot";
 
 const SIZE = 15;
 const PLAYER_START = { row: 1, col: 8 };
@@ -14,6 +14,8 @@ export default function GameBoard() {
   const [playerPosition, setPlayerPosition] = useState(PLAYER_START);
   const [walls, setWalls] = useState([]);
   const [botPosition, setBotPosition] = useState(null);
+  const botPositionRef = useRef(botPosition);
+  botPositionRef.current = botPosition;
 
   useEffect(() => {
     const nextWalls = generateMaze(SIZE, PLAYER_START);
@@ -58,6 +60,29 @@ export default function GameBoard() {
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [walls]);
+
+  useEffect(() => {
+    if (walls.length === 0) {
+      return undefined;
+    }
+
+    let direction = null;
+    const id = setInterval(() => {
+      const prev = botPositionRef.current;
+      if (!prev) {
+        return;
+      }
+
+      const nextMove = nextBotMove(prev, direction, walls, BORDERS);
+      direction = nextMove.direction;
+      botPositionRef.current = nextMove.position;
+      setBotPosition(nextMove.position);
+    }, BOT_MOVE_INTERVAL_MS);
+
+    return () => {
+      clearInterval(id);
     };
   }, [walls]);
 
