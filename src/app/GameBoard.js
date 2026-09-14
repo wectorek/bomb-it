@@ -3,16 +3,24 @@
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { generateMaze, renderWall, checkCollision } from "./maze";
+import { createMapBorder, renderBorder } from "./border";
+import { pickEmptyPosition } from "./bot";
 
 const SIZE = 15;
-const PLAYER_START = { row: 0, col: 8 };
+const PLAYER_START = { row: 1, col: 8 };
+const BORDERS = createMapBorder(SIZE);
 
 export default function GameBoard() {
   const [playerPosition, setPlayerPosition] = useState(PLAYER_START);
   const [walls, setWalls] = useState([]);
+  const [botPosition, setBotPosition] = useState(null);
 
   useEffect(() => {
-    setWalls(generateMaze(SIZE, PLAYER_START));
+    const nextWalls = generateMaze(SIZE, PLAYER_START);
+    setWalls(nextWalls);
+    setBotPosition(
+      pickEmptyPosition(SIZE, nextWalls, BORDERS, [PLAYER_START]),
+    );
   }, []);
 
   useEffect(() => {
@@ -36,7 +44,10 @@ export default function GameBoard() {
             return prev;
         }
 
-        if (checkCollision(next, walls)) {
+        if (
+          checkCollision(next, walls) ||
+          renderBorder(next.row, next.col, BORDERS)
+        ) {
           return prev;
         }
 
@@ -58,15 +69,26 @@ export default function GameBoard() {
             {Array.from({ length: SIZE }, (_, col) => {
               const isPlayer =
                 row === playerPosition.row && col === playerPosition.col;
+              const isBot =
+                botPosition &&
+                row === botPosition.row &&
+                col === botPosition.col;
+              const isBorder = renderBorder(row, col, BORDERS);
               const isWall = renderWall(row, col, walls);
               const cellClass = isPlayer
                 ? styles.player
-                : isWall
-                  ? styles.wall
-                  : undefined;
+                : isBot
+                  ? styles.bot
+                  : isBorder
+                    ? styles.border
+                    : isWall
+                      ? styles.wall
+                      : undefined;
               return (
                 <td key={col} className={cellClass}>
-                  {isPlayer || isWall ? `${row},${col}` : null}
+                  {isPlayer || isBot || isBorder || isWall
+                    ? `${row},${col}`
+                    : null}
                 </td>
               );
             })}

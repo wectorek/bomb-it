@@ -11,10 +11,16 @@ function shuffle(items) {
   return copy;
 }
 
-export function generateMaze(size, start) {
+function alignToLattice(value, min) {
+  return value - ((value - min) % 2);
+}
+
+export function generateMaze(size, start, inset = 1) {
+  const min = inset;
+  const max = size - inset;
   const walls = new Set();
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size; col++) {
+  for (let row = min; row < max; row++) {
+    for (let col = min; col < max; col++) {
       walls.add(cellKey(row, col));
     }
   }
@@ -35,10 +41,10 @@ export function generateMaze(size, start) {
       const nextRow = row + step.row;
       const nextCol = col + step.col;
       if (
-        nextRow < 0 ||
-        nextCol < 0 ||
-        nextRow >= size ||
-        nextCol >= size ||
+        nextRow < min ||
+        nextCol < min ||
+        nextRow >= max ||
+        nextCol >= max ||
         visited.has(cellKey(nextRow, nextCol))
       ) {
         continue;
@@ -49,7 +55,8 @@ export function generateMaze(size, start) {
     }
   }
 
-  carve(start.row, start.col);
+  carve(alignToLattice(start.row, min), alignToLattice(start.col, min));
+  walls.delete(cellKey(start.row, start.col));
 
   return [...walls].map((key) => {
     const [row, col] = key.split(",").map(Number);
