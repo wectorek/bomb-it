@@ -1,7 +1,8 @@
 import { renderWall, checkCollision } from "./maze";
 import { renderBorder } from "./border";
+import { isBombAt } from "./bomb";
 
-export const BOT_MOVE_INTERVAL_MS = 500;
+export const BOT_MOVE_INTERVAL_MS = 300;
 
 const DIRECTIONS = [
   { row: -1, col: 0 },
@@ -10,10 +11,13 @@ const DIRECTIONS = [
   { row: 0, col: 1 },
 ];
 
-function isBlocked(position, walls, borders) {
+// Bot traktuje bombę jak każdą inną przeszkodę - nigdy nie wejdzie na
+// pole, na którym stoi aktualnie postawiona bomba (ale sam bomb nie stawia).
+function isBlocked(position, walls, borders, bomb) {
   return (
     checkCollision(position, walls) ||
-    renderBorder(position.row, position.col, borders)
+    renderBorder(position.row, position.col, borders) ||
+    isBombAt(position, bomb)
   );
 }
 
@@ -24,14 +28,14 @@ function step(position, direction) {
   };
 }
 
-export function getOpenDirections(position, walls, borders) {
+export function getOpenDirections(position, walls, borders, bomb) {
   return DIRECTIONS.filter(
-    (direction) => !isBlocked(step(position, direction), walls, borders),
+    (direction) => !isBlocked(step(position, direction), walls, borders, bomb),
   );
 }
 
-export function pickOpenDirection(position, walls, borders) {
-  const openDirections = getOpenDirections(position, walls, borders);
+export function pickOpenDirection(position, walls, borders, bomb) {
+  const openDirections = getOpenDirections(position, walls, borders, bomb);
 
   if (openDirections.length === 0) {
     return null;
@@ -40,8 +44,8 @@ export function pickOpenDirection(position, walls, borders) {
   return openDirections[Math.floor(Math.random() * openDirections.length)];
 }
 
-export function nextBotMove(position, direction, walls, borders) {
-  const openDirections = getOpenDirections(position, walls, borders);
+export function nextBotMove(position, direction, walls, borders, bomb) {
+  const openDirections = getOpenDirections(position, walls, borders, bomb);
   const isIntersection = openDirections.length > 2;
 
   let currentDirection;
