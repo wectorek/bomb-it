@@ -5,6 +5,7 @@ import styles from "./page.module.css";
 import { generateMaze, renderWall, checkCollision } from "./maze";
 import { createMapBorder, renderBorder } from "./border";
 import { pickEmptyPosition, nextBotMove, BOT_MOVE_INTERVAL_MS } from "./bot";
+import Player from "./Player";
 import {
   BOMB_TIMER_MS,
   BOMB_RANGE,
@@ -267,24 +268,24 @@ export default function GameBoard() {
       {gameOverMessage ? (
         <div className={styles.gameOver}>{gameOverMessage}</div>
       ) : null}
-      <table className={styles.table} style={{ "--board-size": SIZE }}>
-        <tbody>
-          {Array.from({ length: SIZE }, (_, row) => (
-            <tr key={row}>
-              {Array.from({ length: SIZE }, (_, col) => {
-                const isPlayer =
-                  row === playerPosition.row && col === playerPosition.col;
-                const isBot =
-                  botPosition &&
-                  row === botPosition.row &&
-                  col === botPosition.col;
-                const isExplosion = isInExplosion({ row, col }, explosionCells);
-                const isBomb = isBombAt({ row, col }, bomb);
-                const isBorder = renderBorder(row, col, BORDERS);
-                const isWall = renderWall(row, col, walls);
-                const cellClass = isPlayer
-                  ? styles.player
-                  : isBot
+      <div className={styles.board} style={{ "--board-size": SIZE }}>
+        <table className={styles.table}>
+          <tbody>
+            {Array.from({ length: SIZE }, (_, row) => (
+              <tr key={row}>
+                {Array.from({ length: SIZE }, (_, col) => {
+                  const isBot =
+                    botPosition &&
+                    row === botPosition.row &&
+                    col === botPosition.col;
+                  const isExplosion = isInExplosion(
+                    { row, col },
+                    explosionCells,
+                  );
+                  const isBomb = isBombAt({ row, col }, bomb);
+                  const isBorder = renderBorder(row, col, BORDERS);
+                  const isWall = renderWall(row, col, walls);
+                  const cellClass = isBot
                     ? styles.bot
                     : isExplosion
                       ? styles.explosion
@@ -295,23 +296,20 @@ export default function GameBoard() {
                           : isWall
                             ? styles.wall
                             : undefined;
-                return (
-                  <td key={col} className={cellClass}>
-                    {isPlayer ||
-                    isBot ||
-                    isExplosion ||
-                    isBomb ||
-                    isBorder ||
-                    isWall
-                      ? `${row},${col}`
-                      : null}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  return (
+                    <td key={col} className={cellClass}>
+                      {isBot || isExplosion || isBomb || isBorder || isWall
+                        ? `${row},${col}`
+                        : null}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Player />
+      </div>
     </div>
   );
 }
