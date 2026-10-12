@@ -1,3 +1,13 @@
+const middleX=window.innerWidth/2;
+const rightBorderX=middleX+100;
+const leftBorderX=middleX-100;
+const middleY=window.innerHeight/2;
+const topBorderY=middleY-100;
+const bottomBorderY=middleY+100;
+const wallBlock={x:25,y:25}
+const wallBlockSize=25;
+const wallCursor="pointer";
+
 function cellKey(row, col) {
   return `${row},${col}`;
 }

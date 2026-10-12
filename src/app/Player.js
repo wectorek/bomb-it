@@ -9,7 +9,7 @@ const directions = {
 };
 let PLAYER_X = 500;
 let PLAYER_Y = 500;
-const PLAYER_SPEED = 0.5;
+const PLAYER_SPEED = 10;
 
 export default function Player() {
   const [playerPosition, setPlayerPosition] = useState({
