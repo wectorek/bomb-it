@@ -185,8 +185,6 @@ a.secondary {
 .player {
   position: absolute;
   box-sizing: border-box;
-  width: calc(100% / var(--board-size));
-  height: calc(100% / var(--board-size));
   background-color: #00ff00;
   color: #000000;
   display: flex;
@@ -269,4 +267,25 @@ a.secondary {
   font-weight: 700;
   color: var(--text-primary);
   text-align: center;
+}
+
+.arena {
+  position: relative;
+  width: 1000px;
+  height: 1000px;
+  background-color: #0c2a33;
+  border-radius: 10px;
+  padding: 0;
+  border: 1px solid #ff0000;
+  box-sizing: content-box;
+  overflow: hidden;
+}
+
+.wallBlock {
+  position: absolute;
+  box-sizing: border-box;
+  background-color: #8b5a2b;
+  border: 1px solid #5c3d1e;
+  border-radius: 2px;
+  pointer-events: none;
 }

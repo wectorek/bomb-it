@@ -1,4 +1,4 @@
-import { renderWall } from "./maze";
+import { cellToPixels, renderWall } from "./maze";
 import { renderBorder } from "./border";
 
 export const BOMB_TIMER_MS = 3000; // czas od postawienia do wybuchu
@@ -64,8 +64,9 @@ export function getExplosionCells(origin, walls, borders, range = BOMB_RANGE) {
 export function removeDestroyedWalls(walls, explosionCells) {
   return walls.filter(
     (wall) =>
-      !explosionCells.some(
-        (cell) => cell.row === wall.row && cell.col === wall.col,
-      ),
+      !explosionCells.some((cell) => {
+        const { x, y } = cellToPixels(cell.row, cell.col);
+        return wall.x === x && wall.y === y;
+      }),
   );
 }

@@ -2,10 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
-import { generateMaze, renderWall, checkCollision } from "./maze";
+import {
+  ARENA_SIZE,
+  BOARD_SIZE,
+  cellToPixels,
+  generateMaze,
+  renderWall,
+  checkCollision,
+} from "./maze";
 import { createMapBorder, renderBorder } from "./border";
 import { pickEmptyPosition, nextBotMove, BOT_MOVE_INTERVAL_MS } from "./bot";
 import Player from "./Player";
+import WallBlock from "./WallBlock";
 import {
   BOMB_TIMER_MS,
   BOMB_RANGE,
@@ -17,9 +25,8 @@ import {
   removeDestroyedWalls,
 } from "./bomb";
 
-const SIZE = 15;
 const PLAYER_START = { row: 1, col: 8 };
-const BORDERS = createMapBorder(SIZE);
+const BORDERS = createMapBorder(BOARD_SIZE);
 // Gracz ma poruszać się z tą samą prędkością co bot, więc używamy tego
 // samego interwału jako minimalnego odstępu między ruchami gracza.
 const PLAYER_MOVE_INTERVAL_MS = BOT_MOVE_INTERVAL_MS;
@@ -66,11 +73,11 @@ export default function GameBoard() {
   const lastPlayerMoveRef = useRef(0);
 
   useEffect(() => {
-    const nextWalls = generateMaze(SIZE, PLAYER_START);
+    const nextWalls = generateMaze(BOARD_SIZE, PLAYER_START);
     setWalls(nextWalls);
     if (ENABLE_BOT) {
       setBotPosition(
-        pickEmptyPosition(SIZE, nextWalls, BORDERS, [PLAYER_START]),
+        pickEmptyPosition(BOARD_SIZE, nextWalls, BORDERS, [PLAYER_START]),
       );
     }
   }, []);
@@ -268,12 +275,33 @@ export default function GameBoard() {
       {gameOverMessage ? (
         <div className={styles.gameOver}>{gameOverMessage}</div>
       ) : null}
-      <div className={styles.board} style={{ "--board-size": SIZE }}>
-        <table className={styles.table}>
+      <div className={styles.board} style={{ "--board-size": BOARD_SIZE }}>
+       
+       
+      <div
+        className={styles.arena}
+        style={{
+          width: ARENA_SIZE,
+          height: ARENA_SIZE,
+          "--board-size": BOARD_SIZE,
+        }}
+      >
+        {walls.map((wall) => (
+          <WallBlock key={`${wall.x},${wall.y}`} x={wall.x} y={wall.y} />
+        ))}
+        <Player
+          walls={walls}
+          start={cellToPixels(PLAYER_START.row, PLAYER_START.col)}
+        />
+      </div>
+       
+       
+       
+        {/* <table className={styles.table}>
           <tbody>
-            {Array.from({ length: SIZE }, (_, row) => (
+            {Array.from({ length: BOARD_SIZE }, (_, row) => (
               <tr key={row}>
-                {Array.from({ length: SIZE }, (_, col) => {
+                {Array.from({ length: BOARD_SIZE }, (_, col) => {
                   const isBot =
                     botPosition &&
                     row === botPosition.row &&
@@ -308,7 +336,9 @@ export default function GameBoard() {
             ))}
           </tbody>
         </table>
-        <Player />
+        
+        
+         */}
       </div>
     </div>
   );

@@ -1,12 +1,15 @@
-const middleX=window.innerWidth/2;
-const rightBorderX=middleX+100;
-const leftBorderX=middleX-100;
-const middleY=window.innerHeight/2;
-const topBorderY=middleY-100;
-const bottomBorderY=middleY+100;
-const wallBlock={x:25,y:25}
-const wallBlockSize=25;
-const wallCursor="pointer";
+export const BOARD_SIZE = 15;
+export const ARENA_SIZE = 1000;
+export const wallBlockSize = ARENA_SIZE / BOARD_SIZE;
+export const wallBlock = { x: wallBlockSize, y: wallBlockSize };
+export const wallCursor = "pointer";
+
+export function cellToPixels(row, col) {
+  return {
+    x: col * wallBlockSize,
+    y: row * wallBlockSize,
+  };
+}
 
 function cellKey(row, col) {
   return `${row},${col}`;
@@ -70,14 +73,16 @@ export function generateMaze(size, start, inset = 1) {
 
   return [...walls].map((key) => {
     const [row, col] = key.split(",").map(Number);
-    return { row, col };
+    return cellToPixels(row, col);
   });
 }
 
 export function renderWall(row, col, walls) {
-  return walls.some((wall) => wall.row === row && wall.col === col);
+  const { x, y } = cellToPixels(row, col);
+  return walls.some((wall) => wall.x === x && wall.y === y);
 }
 
 export function checkCollision(position, walls) {
-  return walls.some((wall) => wall.row === position.row && wall.col === position.col);
+  const { x, y } = cellToPixels(position.row, position.col);
+  return walls.some((wall) => wall.x === x && wall.y === y);
 }
