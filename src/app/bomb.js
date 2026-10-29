@@ -70,3 +70,44 @@ export function removeDestroyedWalls(walls, explosionCells) {
       }),
   );
 }
+
+function gameStatusAfterHits(playerLives, botLives) {
+  if (playerLives <= 0 && botLives <= 0) {
+    return "draw";
+  }
+  if (playerLives <= 0) {
+    return "lose";
+  }
+  if (botLives <= 0) {
+    return "win";
+  }
+  return null;
+}
+
+// Liczy skutek wybuchu bez zmiany stanu Reacta: pola ognia, ściany do usunięcia,
+// życia po trafieniu i status końca gry, jeśli ktoś stracił ostatnie życie.
+export function resolveExplosionOutcome({
+  bombPosition,
+  walls,
+  borders,
+  playerPosition,
+  botPosition,
+  playerLives,
+  botLives,
+  range = BOMB_RANGE,
+}) {
+  const cells = getExplosionCells(bombPosition, walls, borders, range);
+  const nextPlayerLives = isInExplosion(playerPosition, cells)
+    ? playerLives - 1
+    : playerLives;
+  const nextBotLives =
+    botPosition && isInExplosion(botPosition, cells) ? botLives - 1 : botLives;
+
+  return {
+    cells,
+    walls: removeDestroyedWalls(walls, cells),
+    playerLives: nextPlayerLives,
+    botLives: nextBotLives,
+    gameStatus: gameStatusAfterHits(nextPlayerLives, nextBotLives),
+  };
+}

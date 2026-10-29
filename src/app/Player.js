@@ -1,73 +1,22 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+
 import styles from "./page.module.css";
-import { wallBlockSize } from "./maze";
-import { collidesWithWall } from "./collision";
-const directions = {
-  UP: "ArrowUp",
-  DOWN: "ArrowDown",
-  LEFT: "ArrowLeft",
-  RIGHT: "ArrowRight",
-};
-let PLAYER_X = 500;
-let PLAYER_Y = 500;
-const PLAYER_SPEED = 10;
+import { cellToPixels, wallBlockSize } from "./maze";
+import { BOT_MOVE_INTERVAL_MS } from "./bot";
 
-export default function Player({ walls = [], start = { x: 500, y: 500 } }) {
-  const [playerPosition, setPlayerPosition] = useState(start);
-  const wallsRef = useRef(walls);
-  wallsRef.current = walls;
-
-  useEffect(() => {
-    function handleKeyDown(event) {
-      movePlayer(event.key);
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  function movePlayer(direction) {
-    setPlayerPosition((prev) => {
-      let next = prev;
-      switch (direction) {
-        case directions.UP:
-          next = { x: prev.x, y: prev.y - PLAYER_SPEED };
-          break;
-        case directions.DOWN:
-          next = { x: prev.x, y: prev.y + PLAYER_SPEED };
-          break;
-        case directions.LEFT:
-          next = { x: prev.x - PLAYER_SPEED, y: prev.y };
-          break;
-        case directions.RIGHT:
-          next = { x: prev.x + PLAYER_SPEED, y: prev.y };
-          break;
-        default:
-          return prev;
-      }
-
-      if (collidesWithWall(next, wallsRef.current)) {
-        return prev;
-      }
-
-      return next;
-    });
-  }
+export default function Player({ position }) {
+  const { x, y } = cellToPixels(position.row, position.col);
 
   return (
     <div
       className={styles.player}
       style={{
-        left: `${playerPosition.x}px`,
-        top: `${playerPosition.y}px`,
+        left: `${x}px`,
+        top: `${y}px`,
         width: `${wallBlockSize}px`,
         height: `${wallBlockSize}px`,
+        transition: `left ${BOT_MOVE_INTERVAL_MS}ms linear, top ${BOT_MOVE_INTERVAL_MS}ms linear`,
       }}
-    ></div>
+    />
   );
 }
-
-
