@@ -1,7 +1,7 @@
 const GAME_OVER_MESSAGE = {
-  win: "Wygrałeś! Bot stracił wszystkie życia.",
+  win: "Wygrałeś! Wszystkie boty pokonane.",
   lose: "Przegrałeś! Straciłeś wszystkie życia.",
-  draw: "Remis! Obaj stracili wszystkie życia.",
+  draw: "Remis! Wszyscy polegli.",
 };
 
 export function gameOverMessage(status) {

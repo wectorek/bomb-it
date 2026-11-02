@@ -1,5 +1,5 @@
-export const BOARD_SIZE = 15;
-export const ARENA_SIZE = 1000;
+import { ARENA_SIZE, BOARD_SIZE, BONUS_WALL_CHANCE } from "./config";
+
 export const wallBlockSize = ARENA_SIZE / BOARD_SIZE;
 export const wallBlock = { x: wallBlockSize, y: wallBlockSize };
 export const wallCursor = "pointer";
@@ -73,16 +73,23 @@ export function generateMaze(size, start, inset = 1) {
 
   return [...walls].map((key) => {
     const [row, col] = key.split(",").map(Number);
-    return cellToPixels(row, col);
+    return { row, col, type: wallType(row, col) };
   });
 }
 
+// Filary (obie współrzędne parzyste) DFS i tak zostawia. Reszta to skrzynki.
+function wallType(row, col) {
+  if (row % 2 === 0 && col % 2 === 0) {
+    return "solid";
+  }
+
+  return Math.random() < BONUS_WALL_CHANCE ? "bonus" : "destructible";
+}
+
 export function renderWall(row, col, walls) {
-  const { x, y } = cellToPixels(row, col);
-  return walls.some((wall) => wall.x === x && wall.y === y);
+  return walls.some((wall) => wall.row === row && wall.col === col);
 }
 
 export function checkCollision(position, walls) {
-  const { x, y } = cellToPixels(position.row, position.col);
-  return walls.some((wall) => wall.x === x && wall.y === y);
+  return renderWall(position.row, position.col, walls);
 }

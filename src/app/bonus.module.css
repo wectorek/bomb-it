@@ -1,0 +1,72 @@
+.pickup {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  z-index: 2;
+  transform: scale(0.72);
+  animation: bonus-float 2.2s ease-in-out infinite;
+}
+
+.pickupImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes bonus-float {
+  0%,
+  100% {
+    transform: scale(0.72) translateY(0);
+  }
+
+  50% {
+    transform: scale(0.76) translateY(-4px);
+  }
+}
+
+.toastStack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.toast {
+  background: rgba(12, 20, 24, 0.88);
+  color: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.effects {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.effect {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}

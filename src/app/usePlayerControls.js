@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { getActor, moveIntervalFor, updateActor } from "./actors";
+import { hasEffect } from "./bonus";
 import { playerInputFromKey } from "./playerMovement";
 import { useLatest } from "./useLatest";
 
@@ -10,57 +12,98 @@ export function usePlayerControls({
   blockWalls,
   blockBombs,
   gameStatusRef,
-  playerPositionRef,
+  actorsRef,
+  setActors,
   wallsRef,
-  bombRef,
-  setPlayerPosition,
+  bombsRef,
   placeBomb,
+  throwGrenade,
 }) {
   const placeBombRef = useLatest(placeBomb);
-  const lastMoveAtRef = useRef(0);
+  const throwGrenadeRef = useLatest(throwGrenade);
 
   useEffect(() => {
     function onKeyDown(event) {
+      const player = getActor(actorsRef.current, "player");
+      if (!player) {
+        return;
+      }
+
+      const now = Date.now();
       const input = playerInputFromKey(event, {
         bombsEnabled,
         blockWalls,
         blockBombs,
         borders,
         gameStatus: gameStatusRef.current,
-        position: playerPositionRef.current,
+        position: player.position,
         walls: wallsRef.current,
-        bomb: bombRef.current,
-        now: Date.now(),
-        lastMoveAt: lastMoveAtRef.current,
+        bombs: bombsRef.current,
+        now,
+        nextMoveAt: player.nextMoveAt,
+        hasGrenade: hasEffect(player, "grenade", now),
       });
 
       if (input.preventScroll) {
         event.preventDefault();
       }
 
-      if (input.bombPosition) {
-        placeBombRef.current(input.bombPosition);
+      if (!player.alive) {
+        return;
       }
 
-      if (input.move) {
-        lastMoveAtRef.current = input.move.at;
-        playerPositionRef.current = input.move.position;
-        setPlayerPosition(input.move.position);
+      if (input.throwGrenade) {
+        const threw = throwGrenadeRef.current(
+          player.position,
+          player.facing,
+          player.id,
+        );
+        if (threw) {
+          const effects = { ...(player.effects ?? {}) };
+          delete effects.grenade;
+          const nextActors = updateActor(actorsRef.current, player.id, {
+            effects,
+          });
+          actorsRef.current = nextActors;
+          setActors(nextActors);
+        } else if (input.bombPosition) {
+          placeBombRef.current(input.bombPosition, player.id);
+        }
+      } else if (input.bombPosition) {
+        placeBombRef.current(input.bombPosition, player.id);
       }
+
+      const patch = {};
+      if (input.facing && input.facing !== player.facing) {
+        patch.facing = input.facing;
+      }
+      if (input.move) {
+        patch.position = input.move.position;
+        patch.nextMoveAt =
+          input.move.at + moveIntervalFor(player, input.move.at);
+      }
+      if (patch.facing === undefined && patch.position === undefined) {
+        return;
+      }
+
+      const nextActors = updateActor(actorsRef.current, player.id, patch);
+      actorsRef.current = nextActors;
+      setActors(nextActors);
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
+    actorsRef,
     blockBombs,
     blockWalls,
-    bombRef,
     bombsEnabled,
+    bombsRef,
     borders,
     gameStatusRef,
     placeBombRef,
-    playerPositionRef,
-    setPlayerPosition,
+    setActors,
+    throwGrenadeRef,
     wallsRef,
   ]);
 }

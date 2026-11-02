@@ -2,58 +2,55 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
-import { createMapBorder } from "./border";
-import { STARTING_LIVES } from "./bomb";
-import { BOARD_SIZE } from "./maze";
+import { PLAYER_START, createInitialActors } from "./actors";
 import Arena from "./Arena";
+import { createMapBorder } from "./border";
+import { BOARD_SIZE } from "./config";
+import EndScreen from "./EndScreen";
 import Hud from "./Hud";
 import { useBomb } from "./useBomb";
-import { useBotMovement } from "./useBotMovement";
+import { useGameLoop } from "./useGameLoop";
 import { useLatest } from "./useLatest";
 import { useOpeningLayout } from "./useOpeningLayout";
 import { usePlayerControls } from "./usePlayerControls";
 
-const PLAYER_START = { row: 1, col: 8 };
 const BORDERS = createMapBorder(BOARD_SIZE);
-
-const ENABLE_BOT = false;
-const ENABLE_BOMBS = false;
+const ENABLE_BOMBS = true;
 const ENABLE_WALL_COLLISION = true;
 
-export default function GameBoard() {
-  const [playerPosition, setPlayerPosition] = useState(PLAYER_START);
+export default function GameBoard({ onRestart }) {
+  const [actors, setActors] = useState(() => createInitialActors());
   const [walls, setWalls] = useState([]);
-  const [botPosition, setBotPosition] = useState(null);
-  const [playerLives, setPlayerLives] = useState(STARTING_LIVES);
-  const [botLives, setBotLives] = useState(STARTING_LIVES);
+  const [bonuses, setBonuses] = useState([]);
+  const [toasts, setToasts] = useState([]);
   const [gameStatus, setGameStatus] = useState("playing");
+  const [startedAt] = useState(() => Date.now());
 
-  const playerPositionRef = useLatest(playerPosition);
-  const botPositionRef = useLatest(botPosition);
+  const actorsRef = useLatest(actors);
   const wallsRef = useLatest(walls);
-  const playerLivesRef = useLatest(playerLives);
-  const botLivesRef = useLatest(botLives);
+  const bonusesRef = useLatest(bonuses);
   const gameStatusRef = useLatest(gameStatus);
 
-  const { bombRef, placeBomb } = useBomb({
-    borders: BORDERS,
-    wallsRef,
-    playerPositionRef,
-    botPositionRef,
-    playerLivesRef,
-    botLivesRef,
-    setWalls,
-    setPlayerLives,
-    setBotLives,
-    setGameStatus,
-  });
+  const { bombs, grenades, bombsRef, explosionCells, placeBomb, throwGrenade } =
+    useBomb({
+      borders: BORDERS,
+      wallsRef,
+      actorsRef,
+      setWalls,
+      setActors,
+      setGameStatus,
+      gameStatusRef,
+      bonusesRef,
+      setBonuses,
+    });
 
   useOpeningLayout({
     playerStart: PLAYER_START,
     borders: BORDERS,
-    enableBot: ENABLE_BOT,
+    wallsRef,
     setWalls,
-    setBotPosition,
+    actorsRef,
+    setActors,
   });
 
   usePlayerControls({
@@ -62,31 +59,49 @@ export default function GameBoard() {
     blockWalls: ENABLE_WALL_COLLISION,
     blockBombs: ENABLE_BOMBS,
     gameStatusRef,
-    playerPositionRef,
+    actorsRef,
+    setActors,
     wallsRef,
-    bombRef,
-    setPlayerPosition,
+    bombsRef,
     placeBomb,
+    throwGrenade,
   });
 
-  useBotMovement({
-    enabled: ENABLE_BOT,
-    walls,
+  useGameLoop({
     borders: BORDERS,
-    botPositionRef,
-    bombRef,
+    wallsRef,
+    actorsRef,
+    setActors,
+    bombsRef,
     gameStatusRef,
-    setBotPosition,
+    placeBomb,
+    throwGrenade,
+    bonusesRef,
+    setBonuses,
+    setToasts,
   });
 
   return (
     <div className={styles.gameWrapper}>
-      <Hud
-        playerLives={playerLives}
-        botLives={botLives}
-        gameStatus={gameStatus}
+      <Hud actors={actors} />
+      <Arena
+        walls={walls}
+        borders={BORDERS}
+        actors={actors}
+        bombs={bombs}
+        grenades={grenades}
+        bonuses={bonuses}
+        toasts={toasts}
+        explosionCells={explosionCells}
       />
-      <Arena walls={walls} playerPosition={playerPosition} />
+      {gameStatus === "playing" ? null : (
+        <EndScreen
+          status={gameStatus}
+          actors={actors}
+          startedAt={startedAt}
+          onRestart={onRestart}
+        />
+      )}
     </div>
   );
 }

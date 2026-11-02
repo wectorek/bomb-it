@@ -1,63 +1,219 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getActor } from "./actors";
+import { rangeFor, spawnBonusesFromWalls, survivingBonuses } from "./bonus";
 import {
-  BOMB_TIMER_MS,
-  EXPLOSION_DURATION_MS,
+  getGrenadeTarget,
+  isBombAt,
+  ownsBomb,
   resolveExplosionOutcome,
 } from "./bomb";
+import {
+  BOMB_RANGE,
+  BOMB_TIMER_MS,
+  EXPLOSION_DURATION_MS,
+  GRENADE_FLIGHT_MS,
+  GRENADE_TIMER_MS,
+} from "./config";
 import { useLatest } from "./useLatest";
 
 export function useBomb({
   borders,
   wallsRef,
-  playerPositionRef,
-  botPositionRef,
-  playerLivesRef,
-  botLivesRef,
+  actorsRef,
   setWalls,
-  setPlayerLives,
-  setBotLives,
+  setActors,
   setGameStatus,
+  gameStatusRef,
+  bonusesRef,
+  setBonuses,
 }) {
-  const [bomb, setBomb] = useState(null);
-  const bombRef = useLatest(bomb);
-  const [, setExplosionCells] = useState([]);
+  const [bombs, setBombs] = useState([]);
+  const bombsRef = useLatest(bombs);
+  const [explosions, setExplosions] = useState([]);
+  const timersRef = useRef([]);
+  const nextBombIdRef = useRef(1);
+  const nextBonusIdRef = useRef(1);
 
-  function explode(bombPosition) {
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      for (const id of timers) {
+        clearTimeout(id);
+      }
+    };
+  }, []);
+
+  function schedule(callback, delay) {
+    const id = setTimeout(() => {
+      const index = timersRef.current.indexOf(id);
+      if (index !== -1) {
+        timersRef.current.splice(index, 1);
+      }
+      callback();
+    }, delay);
+    timersRef.current.push(id);
+  }
+
+  function explode(bomb) {
+    const remaining = bombsRef.current.filter((item) => item.id !== bomb.id);
+    bombsRef.current = remaining;
+    setBombs(remaining);
+
+    const now = Date.now();
     const outcome = resolveExplosionOutcome({
-      bombPosition,
+      bombPosition: bomb,
       walls: wallsRef.current,
       borders,
-      playerPosition: playerPositionRef.current,
-      botPosition: botPositionRef.current,
-      playerLives: playerLivesRef.current,
-      botLives: botLivesRef.current,
+      actors: actorsRef.current,
+      range: bomb.range,
+      now,
+      owner: bomb.owner,
     });
 
-    setWalls(outcome.walls);
-    setExplosionCells(outcome.cells);
-    playerLivesRef.current = outcome.playerLives;
-    setPlayerLives(outcome.playerLives);
-    botLivesRef.current = outcome.botLives;
-    setBotLives(outcome.botLives);
-    bombRef.current = null;
-    setBomb(null);
-
-    if (outcome.gameStatus) {
-      setGameStatus(outcome.gameStatus);
+    const kept = survivingBonuses(bonusesRef.current, outcome.cells);
+    const spawned = spawnBonusesFromWalls(
+      outcome.destroyedWalls,
+      Math.random,
+      now,
+    ).map((bonus) => {
+      const id = nextBonusIdRef.current;
+      nextBonusIdRef.current += 1;
+      return { ...bonus, id };
+    });
+    const nextBonuses =
+      spawned.length === 0 && kept === bonusesRef.current
+        ? kept
+        : [...kept, ...spawned];
+    if (nextBonuses !== bonusesRef.current) {
+      bonusesRef.current = nextBonuses;
+      setBonuses(nextBonuses);
     }
 
-    setTimeout(() => {
-      setExplosionCells([]);
+    wallsRef.current = outcome.walls;
+    setWalls(outcome.walls);
+    actorsRef.current = outcome.actors;
+    setActors(outcome.actors);
+    gameStatusRef.current = outcome.gameStatus;
+    setGameStatus(outcome.gameStatus);
+
+    setExplosions((current) => [
+      ...current,
+      { id: bomb.id, cells: outcome.cells },
+    ]);
+
+    schedule(() => {
+      setExplosions((current) =>
+        current.filter((blast) => blast.id !== bomb.id),
+      );
     }, EXPLOSION_DURATION_MS);
   }
 
-  function placeBomb(position) {
-    bombRef.current = position;
-    setBomb(position);
-    setTimeout(() => explode(position), 5);
+  function commitBombs(nextBombs) {
+    bombsRef.current = nextBombs;
+    setBombs(nextBombs);
   }
 
-  return { bombRef, placeBomb };
+  // Lądowanie od tego momentu blokuje pole. Timer wybuchu liczy się od lądowania.
+  function landGrenade(id) {
+    const grenade = bombsRef.current.find((item) => item.id === id);
+    if (!grenade || grenade.kind !== "grenade" || !grenade.airborne) {
+      return;
+    }
+
+    const landed = { ...grenade, airborne: false };
+    commitBombs(
+      bombsRef.current.map((item) => (item.id === id ? landed : item)),
+    );
+    schedule(() => explode(landed), GRENADE_TIMER_MS);
+  }
+
+  function placeBomb(position, owner = "player") {
+    if (!position || ownsBomb(bombsRef.current, owner)) {
+      return;
+    }
+    if (isBombAt(position, bombsRef.current)) {
+      return;
+    }
+
+    const ownerActor = getActor(actorsRef.current, owner);
+    const bomb = {
+      row: position.row,
+      col: position.col,
+      owner,
+      id: nextBombIdRef.current,
+      range: ownerActor ? rangeFor(ownerActor, Date.now()) : BOMB_RANGE,
+    };
+    nextBombIdRef.current += 1;
+    const nextBombs = [...bombsRef.current, bomb];
+    commitBombs(nextBombs);
+    schedule(() => explode(bomb), BOMB_TIMER_MS);
+  }
+
+  // Jednorazowy rzut. false: brak ładunku albo brak pola — efekt zostaje u wołającego.
+  function throwGrenade(from, facing, owner = "player") {
+    if (!from || !facing || ownsBomb(bombsRef.current, owner)) {
+      return false;
+    }
+
+    const target = getGrenadeTarget(
+      from,
+      facing,
+      wallsRef.current,
+      borders,
+      bombsRef.current,
+    );
+    if (!target) {
+      return false;
+    }
+
+    const grenade = {
+      row: target.row,
+      col: target.col,
+      fromRow: from.row,
+      fromCol: from.col,
+      owner,
+      id: nextBombIdRef.current,
+      range: BOMB_RANGE,
+      kind: "grenade",
+      airborne: true,
+    };
+    nextBombIdRef.current += 1;
+    commitBombs([...bombsRef.current, grenade]);
+    schedule(() => landGrenade(grenade.id), GRENADE_FLIGHT_MS);
+    return true;
+  }
+
+  const explosionCells = [];
+  const seenCells = new Set();
+  for (const blast of explosions) {
+    for (const cell of blast.cells) {
+      const key = `${cell.row},${cell.col}`;
+      if (seenCells.has(key)) {
+        continue;
+      }
+      seenCells.add(key);
+      explosionCells.push(cell);
+    }
+  }
+
+  const placedBombs = [];
+  const grenades = [];
+  for (const charge of bombs) {
+    if (charge.kind === "grenade") {
+      grenades.push(charge);
+    } else {
+      placedBombs.push(charge);
+    }
+  }
+
+  return {
+    bombs: placedBombs,
+    grenades,
+    bombsRef,
+    explosionCells,
+    placeBomb,
+    throwGrenade,
+  };
 }

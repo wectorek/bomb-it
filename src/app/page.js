@@ -1,11 +1,12 @@
 import styles from "./page.module.css";
-import GameBoard from "./GameBoard";
+import GameSession from "./GameSession";
+import MusicToggle from "./MusicToggle";
 
 export default function Home() {
   return (
     <div className={styles.page}>
-      <h1>Hello World</h1>
-      <GameBoard />
+      <GameSession />
+      <MusicToggle />
     </div>
   );
 }

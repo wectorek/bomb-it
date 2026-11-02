@@ -1,9 +1,6 @@
 import { checkCollision } from "./maze";
 import { renderBorder } from "./border";
-import { isBombAt } from "./bomb";
-import { BOT_MOVE_INTERVAL_MS } from "./bot";
-
-export const PLAYER_MOVE_INTERVAL_MS = BOT_MOVE_INTERVAL_MS;
+import { isBombAt, ownsBomb } from "./bomb";
 
 export function directionFromKey(key) {
   switch (key.toLowerCase()) {
@@ -31,49 +28,88 @@ export function cellAfterStep(position, direction) {
   };
 }
 
+export function facingFromDirection(direction) {
+  if (direction.row < 0) return "up";
+  if (direction.row > 0) return "down";
+  if (direction.col < 0) return "left";
+  return "right";
+}
+
 function isSpaceKey(event) {
   return event.code === "Space" || event.key === " ";
 }
 
 export function playerInputFromKey(event, state) {
   if (isSpaceKey(event)) {
-    const canPlaceBomb =
-      state.bombsEnabled && state.gameStatus === "playing" && !state.bomb;
+    const playing = state.bombsEnabled && state.gameStatus === "playing";
+    const ownsCharge = ownsBomb(state.bombs, "player");
+    const feetFree = !isBombAt(state.position, state.bombs);
+    const hasGrenade = Boolean(state.hasGrenade);
 
     return {
       preventScroll: true,
-      bombPosition: canPlaceBomb ? state.position : null,
+      throwGrenade: playing && hasGrenade && !ownsCharge,
+      bombPosition: playing && !ownsCharge && feetFree ? state.position : null,
       move: null,
+      facing: null,
     };
   }
 
   if (state.gameStatus !== "playing") {
-    return { preventScroll: false, bombPosition: null, move: null };
+    return {
+      preventScroll: false,
+      bombPosition: null,
+      throwGrenade: false,
+      move: null,
+      facing: null,
+    };
   }
 
   const direction = directionFromKey(event.key);
   if (!direction) {
-    return { preventScroll: false, bombPosition: null, move: null };
+    return {
+      preventScroll: false,
+      bombPosition: null,
+      throwGrenade: false,
+      move: null,
+      facing: null,
+    };
   }
 
-  if (state.now - state.lastMoveAt < PLAYER_MOVE_INTERVAL_MS) {
-    return { preventScroll: true, bombPosition: null, move: null };
+  const facing = facingFromDirection(direction);
+
+  if (state.now < state.nextMoveAt) {
+    return {
+      preventScroll: true,
+      bombPosition: null,
+      throwGrenade: false,
+      move: null,
+      facing,
+    };
   }
 
   const next = cellAfterStep(state.position, direction);
-  const blocked = isPlayerStepBlocked(next, state.walls, state.borders, state.bomb, {
+  const blocked = isPlayerStepBlocked(next, state.walls, state.borders, state.bombs, {
     blockWalls: state.blockWalls,
     blockBombs: state.blockBombs,
   });
 
   if (blocked) {
-    return { preventScroll: true, bombPosition: null, move: null };
+    return {
+      preventScroll: true,
+      bombPosition: null,
+      throwGrenade: false,
+      move: null,
+      facing,
+    };
   }
 
   return {
     preventScroll: true,
     bombPosition: null,
+    throwGrenade: false,
     move: { position: next, at: state.now },
+    facing,
   };
 }
 
