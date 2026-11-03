@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bomb-It
 
-## Getting Started
+Gra w labirynt: stawiasz bomby, niszczysz skrzynki i starasz się przeżyć dłużej niż trzy boty.
 
-First, run the development server:
+## Uruchomienie
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Gra jest pod adresem [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Sterowanie
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **WASD** lub **strzałki** — ruch
+- **Spacja** — bomba. Po zebraniu granatu ten sam klawisz rzuca go w kierunku patrzenia
+- **M** — włącz lub wyłącz muzykę (na starcie jest wyciszona)
+- **Enter** — nowa runda na ekranie końcowym
 
-## Learn More
+## Bonusy
 
-To learn more about Next.js, take a look at the following resources:
+Skrzynki z bonusem wyglądają tak samo jak zwykłe. Na mapie widać tylko pytajnik. Efekt trwa 10 sekund, a ten sam bonus odświeża czas.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Tarcza — odporność na wybuchy
+- Błyskawica — szybszy ruch
+- Płomień ze strzałkami — bomby o większym zasięgu
+- Granat — jeden rzut o zasięgu zwykłej bomby, przelatuje nad jedną ścianą
+- Ślimak — wolniejszy ruch
+- Pęknięte serce — trafienie zabiera 2 życia
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Negatywny bonus wypada rzadziej niż pozytywny.
 
-## Deploy on Vercel
+## Muzyka
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Wrzuć plik do `public/audio/background.mp3`. W tej wersji ma to być „Pszczółka Maja” Zenona Martyniuka. Plik jest w `.gitignore` i nie trafia do repozytorium. Bez niego przycisk działa, ale nic nie gra.

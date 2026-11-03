@@ -1,13 +1,37 @@
 const DIRECTIONS = ["up", "down", "left", "right"];
+const BEE_COLORS = ["blue", "red", "green", "purple"];
+
+export function playerIdleSrc(facing, color = "blue") {
+  const dir = DIRECTIONS.includes(facing) ? facing : "down";
+  const team = BEE_COLORS.includes(color) ? color : "blue";
+  return `/bees/${team}/${dir}.png`;
+}
+
+export function playerWalkSrc(facing, frame, color = "blue") {
+  const dir = DIRECTIONS.includes(facing) ? facing : "down";
+  const team = BEE_COLORS.includes(color) ? color : "blue";
+  const step = frame === 2 ? 2 : 1;
+  return `/bees/${team}/walk/${dir}-${step}.png`;
+}
+
+export function playerHitSrc(color = "blue") {
+  const team = BEE_COLORS.includes(color) ? color : "blue";
+  return `/bees/${team}/hit.png`;
+}
+
+export function playerPoseSrc(kind, color = "blue") {
+  const team = BEE_COLORS.includes(color) ? color : "blue";
+  return `/bees/${team}/${kind === "win" ? "win" : "lose"}.png`;
+}
 
 export const PLAYER_IDLE = {
-  down: "/player/down.png",
-  up: "/player/up.png",
-  left: "/player/left.png",
-  right: "/player/right.png",
+  down: playerIdleSrc("down"),
+  up: playerIdleSrc("up"),
+  left: playerIdleSrc("left"),
+  right: playerIdleSrc("right"),
 };
 
-export const PLAYER_HIT = "/player/hit.png";
+export const PLAYER_HIT = playerHitSrc("blue");
 
 export const ASSETS = {
   walls: {
@@ -40,9 +64,9 @@ export const ASSETS = {
     endBackground: "/ui/end-background.png",
   },
   player: {
-    hit: "/player/hit.png",
-    win: "/player/win.png",
-    lose: "/player/lose.png",
+    hit: playerHitSrc("blue"),
+    win: playerPoseSrc("win"),
+    lose: playerPoseSrc("lose"),
   },
 };
 
@@ -58,21 +82,16 @@ export function wallSpriteUrl({ type = "destructible", permanent = false } = {})
 }
 
 export function playerWalkPath(dir, frame) {
-  return `/player/walk/${dir}-${frame}.png`;
-}
-
-export function playerIdleSrc(facing) {
-  return PLAYER_IDLE[facing] ?? PLAYER_IDLE.down;
-}
-
-export function playerWalkSrc(facing, frame) {
-  return playerWalkPath(facing, frame);
+  return playerWalkSrc(dir, frame, "blue");
 }
 
 export function allPlayerSpriteUrls() {
-  const urls = [...Object.values(PLAYER_IDLE), PLAYER_HIT];
-  for (const dir of DIRECTIONS) {
-    urls.push(playerWalkPath(dir, 1), playerWalkPath(dir, 2));
+  const urls = [];
+  for (const color of BEE_COLORS) {
+    urls.push(playerHitSrc(color), playerPoseSrc("win", color), playerPoseSrc("lose", color));
+    for (const dir of DIRECTIONS) {
+      urls.push(playerIdleSrc(dir, color), playerWalkSrc(dir, 1, color), playerWalkSrc(dir, 2, color));
+    }
   }
   return urls;
 }

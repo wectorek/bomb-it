@@ -50,7 +50,6 @@
   height: auto;
   justify-self: center;
   object-fit: contain;
-  mix-blend-mode: multiply;
   background:
     radial-gradient(circle, #fff 0 58%, rgba(255, 255, 255, 0.92) 68%, transparent 74%);
   border-radius: 28px;

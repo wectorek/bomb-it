@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { moveIntervalFor } from "./actors";
 import {
-  PLAYER_HIT,
+  playerHitSrc,
   playerIdleSrc,
   playerWalkSrc,
   preloadPlayerSprites,
@@ -15,7 +15,8 @@ function sameCell(a, b) {
 
 export function useWalkAnimation(actor) {
   const facing = actor?.facing ?? "down";
-  const [spriteSrc, setSpriteSrc] = useState(() => playerIdleSrc(facing));
+  const color = actor?.color ?? "blue";
+  const [spriteSrc, setSpriteSrc] = useState(() => playerIdleSrc(facing, color));
   const [bobCycleKey, setBobCycleKey] = useState(0);
   const [hitFlash, setHitFlash] = useState(false);
 
@@ -65,10 +66,10 @@ export function useWalkAnimation(actor) {
         setHitFlash(false);
         if (walkPhaseRef.current === "stride") {
           setSpriteSrc(
-            playerWalkSrc(restoreFacing, currentStrideFootRef.current),
+            playerWalkSrc(restoreFacing, currentStrideFootRef.current, color),
           );
         } else {
-          setSpriteSrc(playerIdleSrc(restoreFacing));
+        setSpriteSrc(playerIdleSrc(restoreFacing, color));
         }
       }, 300);
     }
@@ -90,7 +91,7 @@ export function useWalkAnimation(actor) {
         skipInitialStepRef.current = false;
         prevPositionRef.current = pos;
         prevFacingRef.current = actor.facing;
-        setSpriteSrc(playerIdleSrc(actor.facing));
+        setSpriteSrc(playerIdleSrc(actor.facing, color));
         return;
       }
 
@@ -113,14 +114,14 @@ export function useWalkAnimation(actor) {
       setBobCycleKey((key) => key + 1);
 
       if (!hitActiveRef.current) {
-        setSpriteSrc(playerWalkSrc(moveFacing, strideFoot));
+        setSpriteSrc(playerWalkSrc(moveFacing, strideFoot, color));
       }
 
       const half = interval / 2;
       strideTimerRef.current = setTimeout(() => {
         walkPhaseRef.current = "idle";
         if (!hitActiveRef.current) {
-          setSpriteSrc(playerIdleSrc(moveFacing));
+          setSpriteSrc(playerIdleSrc(moveFacing, color));
         }
       }, half);
 
@@ -135,12 +136,12 @@ export function useWalkAnimation(actor) {
     if (prevFacingRef.current !== actor.facing) {
       prevFacingRef.current = actor.facing;
       if (walkPhaseRef.current === "idle" && !hitActiveRef.current) {
-        setSpriteSrc(playerIdleSrc(actor.facing));
+        setSpriteSrc(playerIdleSrc(actor.facing, color));
       }
     }
   }, [actor]);
 
-  const displaySrc = hitFlash ? PLAYER_HIT : spriteSrc;
+  const displaySrc = hitFlash ? playerHitSrc(color) : spriteSrc;
 
   return { displaySrc, bobCycleKey };
 }

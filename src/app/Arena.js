@@ -95,7 +95,10 @@ export default function Arena({
   const players = visible.filter((actor) => actor.kind === "player");
 
   return (
-    <div className={styles.board} style={{ "--board-size": BOARD_SIZE }}>
+    <div
+      className={styles.board}
+      style={{ "--board-size": BOARD_SIZE, "--arena-size": `${ARENA_SIZE}px` }}
+    >
       <div
         className={styles.arena}
         style={{

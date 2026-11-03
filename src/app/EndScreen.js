@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./EndScreen.module.css";
+import { playerPoseSrc } from "./assets";
 import {
   bonusSummary,
   eliminatedActors,
@@ -39,7 +40,8 @@ export default function EndScreen({ status, actors, startedAt, onRestart }) {
   const bots = actors.filter((actor) => actor.kind === "bot");
   const player = actors.find((actor) => actor.kind === "player") ?? null;
   const clock = formatDuration(elapsedMs);
-  const poseSrc = status === "win" ? "/player/win.png" : "/player/lose.png";
+  const poseColor = player?.color ?? "blue";
+  const poseSrc = playerPoseSrc(status === "win" ? "win" : "lose", poseColor);
 
   const restart = useCallback(() => {
     if (restartedRef.current || typeof onRestart !== "function") {

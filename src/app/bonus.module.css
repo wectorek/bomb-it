@@ -62,11 +62,17 @@
 .effect {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
   padding: 1px 6px;
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.effectIcon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }

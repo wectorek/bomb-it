@@ -1,15 +1,3 @@
-.tintRed {
-  filter: hue-rotate(100deg);
-}
-
-.tintGreen {
-  filter: hue-rotate(260deg);
-}
-
-.tintPurple {
-  filter: hue-rotate(40deg);
-}
-
 .spriteBob {
   width: 100%;
   height: 100%;

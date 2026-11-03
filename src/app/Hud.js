@@ -2,13 +2,18 @@
 
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
+import { ASSETS } from "./assets";
 import bonusStyles from "./bonus.module.css";
-import {
-  BONUS_EMOJI,
-  BONUS_TOAST,
-  activeEffectIds,
-  effectSecondsLeft,
-} from "./bonus";
+import { BONUS_TOAST, activeEffectIds, effectSecondsLeft } from "./bonus";
+
+const EFFECT_ICON = {
+  immunity: ASSETS.bonuses.immunity,
+  speed: ASSETS.bonuses.speed,
+  range: ASSETS.bonuses.range,
+  grenade: ASSETS.objects.grenade,
+  slow: ASSETS.bonuses.slow,
+  fragile: ASSETS.bonuses.fragile,
+};
 
 const HUD_DOT = {
   blue: "#1e88e5",
@@ -41,8 +46,13 @@ function EffectList({ actor, now }) {
         const seconds = effectSecondsLeft(actor, id, now);
         return (
           <span key={id} className={bonusStyles.effect} title={BONUS_TOAST[id]}>
-            {BONUS_EMOJI[id]}
-            {seconds == null ? null : ` ${seconds}s`}
+            <img
+              className={bonusStyles.effectIcon}
+              src={EFFECT_ICON[id]}
+              alt=""
+              draggable={false}
+            />
+            {seconds == null ? null : `${seconds}s`}
           </span>
         );
       })}

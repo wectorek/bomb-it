@@ -6,12 +6,6 @@ import { moveIntervalFor } from "./actors";
 import { cellToPixels, wallBlockSize } from "./maze";
 import { useWalkAnimation } from "./useWalkAnimation";
 
-const BOT_TINT = {
-  red: tintStyles.tintRed,
-  green: tintStyles.tintGreen,
-  purple: tintStyles.tintPurple,
-};
-
 export default function ActorSprite({ actor }) {
   const { displaySrc, bobCycleKey } = useWalkAnimation(actor);
 
@@ -21,7 +15,6 @@ export default function ActorSprite({ actor }) {
 
   const { x, y } = cellToPixels(actor.position.row, actor.position.col);
   const interval = moveIntervalFor(actor, actor.nextMoveAt);
-  const tintClass = BOT_TINT[actor.color];
 
   return (
     <div
@@ -40,9 +33,7 @@ export default function ActorSprite({ actor }) {
         style={{ "--move-interval": `${interval}ms` }}
       >
         <img
-          className={
-            tintClass ? `${styles.playerSprite} ${tintClass}` : styles.playerSprite
-          }
+          className={styles.playerSprite}
           src={displaySrc}
           alt=""
           draggable={false}
