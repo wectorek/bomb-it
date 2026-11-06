@@ -13,7 +13,7 @@ Gra jest pod adresem [http://localhost:3000](http://localhost:3000).
 
 ## Sterowanie
 
-- **WASD** lub **strzałki** — ruch
+- **WASD** lub **strzałki** — ruch. Na telefonie ten sam ruch jest na krzyżaku, a bomba na okrągłym przycisku
 - **Spacja** — bomba. Po zebraniu granatu ten sam klawisz rzuca go w kierunku patrzenia
 - **M** — włącz lub wyłącz muzykę (na starcie jest wyciszona). Klik w głośnik otwiera utwory, wyciszenie, strefę i motyw planszy
 - **Enter** — nowa runda na ekranie końcowym

@@ -1,7 +1,7 @@
 .root {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -14,11 +14,14 @@
   pointer-events: auto;
   position: absolute;
   right: 0;
-  bottom: 52px;
+  top: 72px;
+  bottom: auto;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  width: 240px;
+  width: min(280px, calc(100vw - 24px));
+  max-height: min(70dvh, 520px);
+  overflow: auto;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 12px;
@@ -68,25 +71,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   padding: 0;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: rgba(250, 250, 250, 0.92);
+  border: 3px solid #fff;
+  border-radius: 20px;
+  background: #f5c518;
+  color: #1a1400;
   cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
 }
 
 .icon {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
+  width: 36px;
+  height: 36px;
+  display: block;
   pointer-events: none;
   user-select: none;
 }
 
-.button:hover {
-  background: #fff;
+.button:hover,
+.button:active {
+  background: #ffdf6b;
 }
 
 .button:focus-visible {
@@ -109,15 +115,10 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .button,
   .nowPlaying,
   .menu {
     background: rgba(30, 30, 30, 0.96);
     border-color: #444;
     color: #ededed;
-  }
-
-  .button:hover {
-    background: rgba(45, 45, 45, 0.95);
   }
 }

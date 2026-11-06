@@ -1,0 +1,102 @@
+.pad {
+  display: none;
+}
+
+@media (max-width: 820px), (pointer: coarse) {
+  .pad {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 800;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 8px 16px calc(12px + env(safe-area-inset-bottom));
+    pointer-events: none;
+  }
+}
+
+.dpad {
+  pointer-events: none;
+  position: relative;
+  width: 168px;
+  height: 168px;
+  flex: none;
+}
+
+.key,
+.bomb {
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(12, 24, 32, 0.78);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.key {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+}
+
+.key:active,
+.bomb:active {
+  background: rgba(30, 136, 229, 0.9);
+}
+
+.up {
+  top: 0;
+  left: 57px;
+}
+
+.down {
+  bottom: 0;
+  left: 57px;
+}
+
+.left {
+  top: 57px;
+  left: 0;
+}
+
+.right {
+  top: 57px;
+  right: 0;
+}
+
+.arrow {
+  display: block;
+  width: 0;
+  height: 0;
+  margin: auto;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 14px solid #fff;
+}
+
+.down .arrow {
+  transform: rotate(180deg);
+}
+
+.left .arrow {
+  transform: rotate(-90deg);
+}
+
+.right .arrow {
+  transform: rotate(90deg);
+}
+
+.bomb {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
