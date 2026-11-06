@@ -1,0 +1,17 @@
+.storm {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(98, 42, 186, 0.42);
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    transparent var(--safe),
+    #000 calc(var(--safe) + 22px)
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    transparent var(--safe),
+    #000 calc(var(--safe) + 22px)
+  );
+}

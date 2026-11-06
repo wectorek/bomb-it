@@ -1,5 +1,5 @@
 import { renderBorder } from "./border";
-import { BOMB_RANGE } from "./config";
+import { BOMB_RANGE, BOT_ENGAGE_DISTANCE } from "./config";
 import { renderWall, checkCollision } from "./maze";
 import { getExplosionCells, getGrenadeTarget, isBombAt, isInExplosion } from "./bomb";
 import { facingFromDirection } from "./playerMovement";
@@ -134,7 +134,7 @@ function pickFrom(pool, direction) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-// Stawia bombę, gdy da się z niej uciec, i schodzi z pola w tej samej turze.
+// Stawia bombę dopiero blisko innego aktora, gdy da się z niej uciec, i schodzi z pola.
 // Z granatem rzuca w dotychczasowym kierunku (albo facing) i liczy wybuch od lądowania.
 // Dopóki stoi w przyszłym wybuchu, idzie w stronę, która zwiększa odległość.
 export function nextBotTurn(
@@ -156,10 +156,20 @@ export function nextBotTurn(
       ? getGrenadeTarget(position, throwFacing, walls, borders, bombs)
       : null;
 
+  const nearestOther = (options.others ?? []).reduce((best, other) => {
+    if (!other) {
+      return best;
+    }
+    const distance =
+      Math.abs(position.row - other.row) + Math.abs(position.col - other.col);
+    return Math.min(best, distance);
+  }, Infinity);
+  const engaged = nearestOther <= BOT_ENGAGE_DISTANCE;
   const hasOwnBomb = bombs.some((bomb) => bomb.owner === owner);
   const canLeave = getOpenDirections(position, walls, borders, bombs).length > 0;
   const feetFree = !isBombAt(position, bombs);
   const canThrow =
+    engaged &&
     Boolean(grenadeTarget) &&
     !hasOwnBomb &&
     canLeave &&
@@ -173,6 +183,7 @@ export function nextBotTurn(
       position,
     );
   const canPlantBomb =
+    engaged &&
     !canThrow &&
     !hasOwnBomb &&
     feetFree &&

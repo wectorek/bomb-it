@@ -3,12 +3,13 @@ import {
   BONUS_DURATION_MS,
   BONUS_LIFETIME_MS,
   BONUSES_DESTROYED_BY_EXPLOSION,
+  FREEZE_DURATION_MS,
   NEGATIVE_BONUS_CHANCE,
   RANGE_BONUS,
 } from "./config";
 
 export const POSITIVE_BONUS_TYPES = ["immunity", "speed", "range", "grenade"];
-export const NEGATIVE_BONUS_TYPES = ["slow", "fragile"];
+export const NEGATIVE_BONUS_TYPES = ["slow", "fragile", "freeze"];
 
 const EFFECT_ORDER = [
   "immunity",
@@ -17,7 +18,17 @@ const EFFECT_ORDER = [
   "grenade",
   "slow",
   "fragile",
+  "freeze",
 ];
+
+// Zdobycie drugiej strony pary kasuje tę, która już działa.
+const OPPOSITES = {
+  immunity: ["fragile"],
+  fragile: ["immunity"],
+  speed: ["slow", "freeze"],
+  slow: ["speed"],
+  freeze: ["speed"],
+};
 
 export const BONUS_EMOJI = {
   immunity: "🛡️",
@@ -26,6 +37,7 @@ export const BONUS_EMOJI = {
   grenade: "💣",
   slow: "🐌",
   fragile: "💔",
+  freeze: "❄️",
 };
 
 export const BONUS_TOAST = {
@@ -35,6 +47,7 @@ export const BONUS_TOAST = {
   grenade: "Granat!",
   slow: "Spowolnienie!",
   fragile: "Kruchość!",
+  freeze: "Zatrzymanie!",
 };
 
 // Negatywny jako kategoria ma być rzadszy niż pozytywny.
@@ -55,7 +68,10 @@ export function isNegativeBonus(type) {
 // Czysta funkcja: ta sama sekwencja `random()` zawsze daje ten sam typ.
 export function rollBonusType(random) {
   if (random() < NEGATIVE_BONUS_CHANCE) {
-    return random() < 0.5 ? "slow" : "fragile";
+    const index = Math.floor(random() * NEGATIVE_BONUS_TYPES.length);
+    return NEGATIVE_BONUS_TYPES[
+      Math.min(index, NEGATIVE_BONUS_TYPES.length - 1)
+    ];
   }
 
   const index = Math.floor(random() * POSITIVE_BONUS_TYPES.length);
@@ -146,22 +162,41 @@ function withCollectedStat(actor, type) {
   };
 }
 
-// Ten sam efekt odświeża czas. Granat to flaga bez czasu i bez kumulacji.
+function withoutOpposites(effects, type) {
+  const next = { ...effects };
+  for (const opposite of OPPOSITES[type] ?? []) {
+    delete next[opposite];
+  }
+  return next;
+}
+
+// Ten sam efekt odświeża czas. Para przeciwna kasuje poprzedni efekt.
+// Granat to flaga bez czasu i bez kumulacji. Freeze zatrzymuje ruch na 3 s.
 export function applyBonus(actor, type, now) {
-  const effects = actor.effects ?? {};
+  const hadFreeze = Boolean(actor.effects?.freeze);
+  const effects = withoutOpposites(actor.effects ?? {}, type);
+  let nextMoveAt = actor.nextMoveAt ?? 0;
+
+  if (type === "freeze") {
+    nextMoveAt = Math.max(nextMoveAt, now + FREEZE_DURATION_MS);
+  } else if (hadFreeze && (OPPOSITES[type] ?? []).includes("freeze")) {
+    nextMoveAt = now;
+  }
 
   if (type === "grenade") {
     if (effects.grenade) {
-      return actor;
+      return { ...actor, effects, nextMoveAt };
     }
-    return { ...actor, effects: { ...effects, grenade: {} } };
+    return { ...actor, effects: { ...effects, grenade: {} }, nextMoveAt };
   }
 
+  const duration = type === "freeze" ? FREEZE_DURATION_MS : BONUS_DURATION_MS;
   return {
     ...actor,
+    nextMoveAt,
     effects: {
       ...effects,
-      [type]: { until: now + BONUS_DURATION_MS },
+      [type]: { until: now + duration },
     },
   };
 }

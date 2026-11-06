@@ -13,6 +13,7 @@ const EFFECT_ICON = {
   grenade: ASSETS.objects.grenade,
   slow: ASSETS.bonuses.slow,
   fragile: ASSETS.bonuses.fragile,
+  freeze: ASSETS.bonuses.freeze,
 };
 
 const HUD_DOT = {

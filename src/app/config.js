@@ -10,15 +10,21 @@ export const BOT_COUNT = 3;
 export const BOT_COLORS = ["red", "green", "purple"];
 export const GAME_TICK_MS = 50; // wspólny tick, nie tempo kroku
 
-// Ściany (T1). Pola, gdzie wiersz i kolumna są parzyste, i tak zostają filarami.
+// Ściany. Solid jest losowany, nie układa się w kratkę.
 export const BONUS_WALL_CHANCE = 0.4;
-export const EXTRA_SOLID_CHANCE = 0;
+export const SOLID_WALL_CHANCE = 0.22;
+export const HEDGE_WALL_CHANCE = 0.34;
+export const HEDGE_REGROW_MS = 8000;
 
-// Muzyka (T5). Plik dorzuca użytkownik; brak pliku nie może wywalić gry.
-export const MUSIC_SRC = "/audio/background.mp3";
-export const MUSIC_TITLE = "Pszczółka Maja";
-export const MUSIC_ARTIST = "Zenon Martyniuk";
+// Bot stawia ładunek dopiero przy innym żywym aktorze.
+export const BOT_ENGAGE_DISTANCE = 4;
+
+// Muzyka. Lista utworów powstaje z plików mp3 w public/audio.
 export const MUSIC_VOLUME = 0.4;
+
+// Strefa schodzi od brzegu o jedno pole na 20 sekund. Obrażenia co 5 sekund w niej.
+export const ZONE_CELL_MS = 20000;
+export const ZONE_DAMAGE_MS = 5000;
 
 // Bonusy (T2). Negatywny ma być rzadszy niż pozytywny.
 export const BONUS_DURATION_MS = 10000;
@@ -29,6 +35,7 @@ export const RANGE_BONUS = 2;
 export const BONUSES_DESTROYED_BY_EXPLOSION = false;
 export const BONUS_LIFETIME_MS = null;
 export const TOAST_MS = 1500;
+export const FREEZE_DURATION_MS = 3000;
 
 // Granat (T2b). Zasięg wybuchu to BOMB_RANGE, bez bonusu zasięgu.
 export const GRENADE_THROW_DISTANCE = 2;

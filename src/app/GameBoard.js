@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { PLAYER_START, createInitialActors } from "./actors";
 import Arena from "./Arena";
@@ -18,18 +18,38 @@ const BORDERS = createMapBorder(BOARD_SIZE);
 const ENABLE_BOMBS = true;
 const ENABLE_WALL_COLLISION = true;
 
-export default function GameBoard({ onRestart }) {
+export default function GameBoard({
+  onRestart,
+  zoneEnabled = false,
+  themeId = "bee",
+}) {
   const [actors, setActors] = useState(() => createInitialActors());
   const [walls, setWalls] = useState([]);
   const [bonuses, setBonuses] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [gameStatus, setGameStatus] = useState("playing");
   const [startedAt] = useState(() => Date.now());
+  const [zoneStartedAt, setZoneStartedAt] = useState(null);
+  const zoneStartedAtRef = useRef(null);
+  const zoneSinceRef = useRef(new Map());
 
   const actorsRef = useLatest(actors);
   const wallsRef = useLatest(walls);
   const bonusesRef = useLatest(bonuses);
   const gameStatusRef = useLatest(gameStatus);
+
+  useEffect(() => {
+    if (!zoneEnabled) {
+      zoneStartedAtRef.current = null;
+      zoneSinceRef.current.clear();
+      setZoneStartedAt(null);
+      return;
+    }
+    const now = Date.now();
+    zoneStartedAtRef.current = now;
+    zoneSinceRef.current.clear();
+    setZoneStartedAt(now);
+  }, [zoneEnabled]);
 
   const { bombs, grenades, bombsRef, explosionCells, placeBomb, throwGrenade } =
     useBomb({
@@ -79,6 +99,9 @@ export default function GameBoard({ onRestart }) {
     bonusesRef,
     setBonuses,
     setToasts,
+    setGameStatus,
+    zoneStartedAtRef,
+    zoneSinceRef,
   });
 
   return (
@@ -93,6 +116,8 @@ export default function GameBoard({ onRestart }) {
         bonuses={bonuses}
         toasts={toasts}
         explosionCells={explosionCells}
+        zoneStartedAt={zoneStartedAt}
+        themeId={themeId}
       />
       {gameStatus === "playing" ? null : (
         <EndScreen

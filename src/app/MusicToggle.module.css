@@ -4,10 +4,63 @@
   bottom: 16px;
   z-index: 1000;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
   max-width: min(calc(100vw - 32px), 420px);
   pointer-events: none;
+}
+
+.menu {
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  bottom: 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 240px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  background: rgba(250, 250, 250, 0.96);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.menuItem[aria-checked="true"] {
+  background: color-mix(in srgb, #1e88e5 16%, transparent);
+}
+
+.menuItem:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.artist {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.empty {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .button {
@@ -57,8 +110,9 @@
 
 @media (prefers-color-scheme: dark) {
   .button,
-  .nowPlaying {
-    background: rgba(30, 30, 30, 0.92);
+  .nowPlaying,
+  .menu {
+    background: rgba(30, 30, 30, 0.96);
     border-color: #444;
     color: #ededed;
   }

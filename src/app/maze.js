@@ -1,4 +1,10 @@
-import { ARENA_SIZE, BOARD_SIZE, BONUS_WALL_CHANCE } from "./config";
+import {
+  ARENA_SIZE,
+  BOARD_SIZE,
+  BONUS_WALL_CHANCE,
+  HEDGE_WALL_CHANCE,
+  SOLID_WALL_CHANCE,
+} from "./config";
 
 export const wallBlockSize = ARENA_SIZE / BOARD_SIZE;
 export const wallBlock = { x: wallBlockSize, y: wallBlockSize };
@@ -73,17 +79,26 @@ export function generateMaze(size, start, inset = 1) {
 
   return [...walls].map((key) => {
     const [row, col] = key.split(",").map(Number);
-    return { row, col, type: wallType(row, col) };
+    return { row, col, type: wallType() };
   });
 }
 
-// Filary (obie współrzędne parzyste) DFS i tak zostawia. Reszta to skrzynki.
-function wallType(row, col) {
-  if (row % 2 === 0 && col % 2 === 0) {
+// Każda zostawiona ściana losuje typ osobno, więc filary nie tworzą kratki.
+function wallType() {
+  const roll = Math.random();
+  if (roll < SOLID_WALL_CHANCE) {
     return "solid";
   }
-
-  return Math.random() < BONUS_WALL_CHANCE ? "bonus" : "destructible";
+  const bonusCut =
+    SOLID_WALL_CHANCE + (1 - SOLID_WALL_CHANCE) * BONUS_WALL_CHANCE;
+  if (roll < bonusCut) {
+    return "bonus";
+  }
+  const hedgeCut = bonusCut + (1 - bonusCut) * HEDGE_WALL_CHANCE;
+  if (roll < hedgeCut) {
+    return "hedge";
+  }
+  return "destructible";
 }
 
 export function renderWall(row, col, walls) {

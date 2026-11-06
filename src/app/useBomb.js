@@ -15,6 +15,7 @@ import {
   EXPLOSION_DURATION_MS,
   GRENADE_FLIGHT_MS,
   GRENADE_TIMER_MS,
+  HEDGE_REGROW_MS,
 } from "./config";
 import { useLatest } from "./useLatest";
 
@@ -56,6 +57,34 @@ export function useBomb({
     timersRef.current.push(id);
   }
 
+  function hedgeCellBlocked(row, col) {
+    const actorThere = actorsRef.current.some(
+      (actor) =>
+        actor.alive &&
+        actor.position?.row === row &&
+        actor.position?.col === col,
+    );
+    const bombThere = bombsRef.current.some(
+      (bomb) => !bomb.airborne && bomb.row === row && bomb.col === col,
+    );
+    const wallThere = wallsRef.current.some(
+      (wall) => wall.row === row && wall.col === col,
+    );
+    return actorThere || bombThere || wallThere;
+  }
+
+  function scheduleHedge(row, col, delay = HEDGE_REGROW_MS) {
+    schedule(() => {
+      if (hedgeCellBlocked(row, col)) {
+        scheduleHedge(row, col, 1000);
+        return;
+      }
+      const walls = [...wallsRef.current, { row, col, type: "hedge" }];
+      wallsRef.current = walls;
+      setWalls(walls);
+    }, delay);
+  }
+
   function explode(bomb) {
     const remaining = bombsRef.current.filter((item) => item.id !== bomb.id);
     bombsRef.current = remaining;
@@ -93,6 +122,11 @@ export function useBomb({
 
     wallsRef.current = outcome.walls;
     setWalls(outcome.walls);
+    for (const wall of outcome.destroyedWalls) {
+      if (wall.type === "hedge") {
+        scheduleHedge(wall.row, wall.col);
+      }
+    }
     actorsRef.current = outcome.actors;
     setActors(outcome.actors);
     gameStatusRef.current = outcome.gameStatus;

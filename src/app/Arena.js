@@ -1,4 +1,4 @@
-import { ASSETS } from "./assets";
+import { ASSETS, themeById } from "./assets";
 import styles from "./page.module.css";
 import ActorSprite from "./ActorSprite";
 import bonusStyles from "./bonus.module.css";
@@ -9,6 +9,7 @@ import {
   GRENADE_FLIGHT_MS,
 } from "./config";
 import { cellToPixels, wallBlockSize } from "./maze";
+import Storm from "./Storm";
 import WallBlock from "./WallBlock";
 
 function CellMarker({ cell, className, style: extraStyle }) {
@@ -89,10 +90,13 @@ export default function Arena({
   bonuses = [],
   toasts = [],
   explosionCells = [],
+  zoneStartedAt = null,
+  themeId = "bee",
 }) {
   const visible = actors.filter((actor) => actor.alive && actor.position);
   const bots = visible.filter((actor) => actor.kind === "bot");
   const players = visible.filter((actor) => actor.kind === "player");
+  const theme = themeById(themeId);
 
   return (
     <div
@@ -105,6 +109,7 @@ export default function Arena({
           width: ARENA_SIZE,
           height: ARENA_SIZE,
           "--board-size": BOARD_SIZE,
+          backgroundImage: `url(${theme.floor})`,
         }}
       >
         {toasts.length > 0 ? (
@@ -122,6 +127,7 @@ export default function Arena({
             row={cell.row}
             col={cell.col}
             permanent
+            themeId={themeId}
           />
         ))}
         {walls.map((wall) => (
@@ -130,6 +136,7 @@ export default function Arena({
             row={wall.row}
             col={wall.col}
             type={wall.type}
+            themeId={themeId}
           />
         ))}
         {bonuses.map((bonus) => (
@@ -161,6 +168,7 @@ export default function Arena({
         {players.map((actor) => (
           <ActorSprite key={actor.id} actor={actor} />
         ))}
+        <Storm startedAt={zoneStartedAt} />
       </div>
     </div>
   );

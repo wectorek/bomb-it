@@ -57,6 +57,7 @@ export const ASSETS = {
     range: "/bonuses/range.png",
     slow: "/bonuses/slow.png",
     fragile: "/bonuses/fragile.png",
+    freeze: "/bonuses/freeze.svg",
   },
   ui: {
     soundOn: "/ui/sound-on.png",
@@ -70,15 +71,75 @@ export const ASSETS = {
   },
 };
 
-/** Grafika ściany: obramowanie, solid, destructible i bonus (ten sam co destructible). */
-export function wallSpriteUrl({ type = "destructible", permanent = false } = {}) {
+export const THEMES = [
+  {
+    id: "main",
+    name: "Główny",
+    floor: "/floor.png",
+    solid: "/walls/solid.png",
+    destructible: "/walls/destructible.png",
+    border: "/walls/border.png",
+    hedge: "/walls/hedge.png",
+  },
+  {
+    id: "bee",
+    name: "Pszczeli",
+    floor: "/themes/bee/floor.png",
+    solid: "/themes/bee/solid.png",
+    destructible: "/themes/bee/destructible.png",
+    border: "/themes/bee/border.png",
+    hedge: "/themes/bee/hedge.png",
+  },
+  {
+    id: "sacred",
+    name: "Religijny",
+    floor: "/themes/sacred/floor.png",
+    solid: "/themes/sacred/solid.png",
+    destructible: "/themes/sacred/destructible.png",
+    border: "/themes/sacred/border.png",
+    hedge: "/themes/sacred/hedge.png",
+  },
+  {
+    id: "circuit",
+    name: "AI",
+    floor: "/themes/circuit/floor.png",
+    solid: "/themes/circuit/solid.png",
+    destructible: "/themes/circuit/destructible.png",
+    border: "/themes/circuit/border.png",
+    hedge: "/themes/circuit/hedge.png",
+  },
+  {
+    id: "cosmos",
+    name: "Kosmiczny",
+    floor: "/themes/cosmos/floor.png",
+    solid: "/themes/cosmos/solid.png",
+    destructible: "/themes/cosmos/destructible.png",
+    border: "/themes/cosmos/border.png",
+    hedge: "/themes/cosmos/hedge.png",
+  },
+];
+
+export function themeById(id) {
+  return THEMES.find((theme) => theme.id === id) ?? THEMES[0];
+}
+
+/** Grafika ściany zależy od motywu. Bonus wygląda jak zwykła skrzynka. */
+export function wallSpriteUrl({
+  type = "destructible",
+  permanent = false,
+  themeId = "bee",
+} = {}) {
+  const theme = themeById(themeId);
   if (permanent) {
-    return ASSETS.walls.border;
+    return theme.border;
   }
   if (type === "solid") {
-    return ASSETS.walls.solid;
+    return theme.solid;
   }
-  return ASSETS.walls.destructible;
+  if (type === "hedge") {
+    return theme.hedge;
+  }
+  return theme.destructible;
 }
 
 export function playerWalkPath(dir, frame) {

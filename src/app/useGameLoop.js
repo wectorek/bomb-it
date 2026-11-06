@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { aliveActors, moveIntervalFor, updateActor } from "./actors";
+import { aliveActors, computeGameStatus, moveIntervalFor, updateActor } from "./actors";
 import {
   bonusToastText,
   collectBonuses,
@@ -14,6 +14,7 @@ import { nextBotTurn } from "./bot";
 import { GAME_TICK_MS, TOAST_MS } from "./config";
 import { facingFromDirection } from "./playerMovement";
 import { useLatest } from "./useLatest";
+import { applyZoneDamage, safeRadius } from "./zone";
 
 // Tick planszy: wygasanie efektów, ruch botów i zebranie bonusów spod nóg.
 export function useGameLoop({
@@ -28,6 +29,9 @@ export function useGameLoop({
   bonusesRef,
   setBonuses,
   setToasts,
+  setGameStatus,
+  zoneStartedAtRef,
+  zoneSinceRef,
 }) {
   const placeBombRef = useLatest(placeBomb);
   const throwGrenadeRef = useLatest(throwGrenade);
@@ -82,6 +86,9 @@ export function useGameLoop({
           {
             hasGrenade: hasEffect(actor, "grenade", now),
             facing: actor.facing,
+            others: aliveActors(next)
+              .filter((other) => other.id !== actor.id && other.position)
+              .map((other) => other.position),
           },
         );
 
@@ -122,6 +129,19 @@ export function useGameLoop({
 
       showToasts(pickup.collected, now);
 
+      if (zoneStartedAtRef.current != null) {
+        const radius = safeRadius(now - zoneStartedAtRef.current);
+        const zoned = applyZoneDamage(next, radius, now, zoneSinceRef.current);
+        if (zoned !== next) {
+          next = zoned;
+          const status = computeGameStatus(next);
+          if (status !== "playing") {
+            gameStatusRef.current = status;
+            setGameStatus(status);
+          }
+        }
+      }
+
       if (next !== actorsRef.current) {
         actorsRef.current = next;
         setActors(next);
@@ -143,8 +163,11 @@ export function useGameLoop({
     placeBombRef,
     setActors,
     setBonuses,
+    setGameStatus,
     setToasts,
     throwGrenadeRef,
     wallsRef,
+    zoneSinceRef,
+    zoneStartedAtRef,
   ]);
 }

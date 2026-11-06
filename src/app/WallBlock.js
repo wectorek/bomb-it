@@ -9,9 +9,10 @@ export default function WallBlock({
   col,
   type = "destructible",
   permanent = false,
+  themeId = "bee",
 }) {
   const { x, y } = cellToPixels(row, col);
-  const backgroundImage = `url(${wallSpriteUrl({ type, permanent })})`;
+  const backgroundImage = `url(${wallSpriteUrl({ type, permanent, themeId })})`;
 
   return (
     <div
