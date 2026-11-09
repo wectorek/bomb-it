@@ -37,7 +37,7 @@ export function useBackgroundMusic() {
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch("/api/music", { cache: "no-store" });
+      const response = await fetch("/audio/tracks.json", { cache: "no-store" });
       if (!response.ok) {
         return;
       }

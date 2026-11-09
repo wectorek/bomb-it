@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "node scripts/write-music-manifest.js",
     "build": "next build",
+    "prebuild": "node scripts/write-music-manifest.js",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "pages:dev": "wrangler pages dev out --port 5501",
+    "deploy": "wrangler pages deploy out --project-name bomb-it"
   },
   "dependencies": {
     "next": "16.3.4",
@@ -16,6 +20,7 @@
   "devDependencies": {
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.4"
+    "eslint-config-next": "16.3.4",
+    "wrangler": "^4.113.0"
   }
 }

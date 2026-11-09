@@ -1,7 +1,8 @@
-import { open, readdir } from "fs/promises";
-import path from "path";
+const { open, readdir, mkdir, writeFile } = require("fs/promises");
+const path = require("path");
 
-export const dynamic = "force-dynamic";
+const dir = path.join(process.cwd(), "public", "audio");
+const manifestPath = path.join(dir, "tracks.json");
 
 function synchsafe(buffer, offset) {
   return (
@@ -74,13 +75,12 @@ function titleFromName(name) {
     .trim();
 }
 
-export async function GET() {
-  const dir = path.join(process.cwd(), "public", "audio");
+async function listTracks() {
   let names = [];
   try {
     names = await readdir(dir);
   } catch {
-    names = [];
+    return [];
   }
 
   const tracks = [];
@@ -101,8 +101,16 @@ export async function GET() {
       src: `/audio/${encodeURIComponent(name)}`,
     });
   }
-
-  return Response.json(tracks, {
-    headers: { "Cache-Control": "no-store" },
-  });
+  return tracks;
 }
+
+async function main() {
+  const tracks = await listTracks();
+  await mkdir(dir, { recursive: true });
+  await writeFile(manifestPath, `${JSON.stringify(tracks, null, 2)}\n`);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

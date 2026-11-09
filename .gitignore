@@ -40,5 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# wrangler
+.wrangler
+
 # copyrighted background music (user-supplied)
 public/audio/*.mp3
+public/audio/tracks.json
