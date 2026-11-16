@@ -1,22 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import styles from "./Storm.module.css";
-import { safeHalf, stormInsetPixels } from "./zone";
+import { stormInsetPixels } from "./board";
 
-export default function Storm({ startedAt }) {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 100);
-    return () => clearInterval(id);
-  }, []);
-
-  if (startedAt == null) {
+export default function Storm({ radius }) {
+  if (radius == null) {
     return null;
   }
 
-  const inset = stormInsetPixels(safeHalf(now - startedAt));
+  const inset = stormInsetPixels(radius);
 
   return (
     <div

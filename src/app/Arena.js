@@ -8,7 +8,7 @@ import {
   EXPLOSION_DURATION_MS,
   GRENADE_FLIGHT_MS,
 } from "./config";
-import { cellToPixels, wallBlockSize } from "./maze";
+import { cellToPixels, wallBlockSize } from "./board";
 import Storm from "./Storm";
 import WallBlock from "./WallBlock";
 
@@ -55,10 +55,11 @@ function BonusPickup({ bonus }) {
 
 function GrenadeMarker({ grenade }) {
   const to = cellToPixels(grenade.row, grenade.col);
-  const from = cellToPixels(
-    grenade.fromRow ?? grenade.row,
-    grenade.fromCol ?? grenade.col,
-  );
+  const fromCell = grenade.from ?? {
+    row: grenade.fromRow ?? grenade.row,
+    col: grenade.fromCol ?? grenade.col,
+  };
+  const from = cellToPixels(fromCell.row, fromCell.col);
 
   return (
     <div
@@ -90,7 +91,7 @@ export default function Arena({
   bonuses = [],
   toasts = [],
   explosionCells = [],
-  zoneStartedAt = null,
+  zoneRadius = null,
   themeId = "bee",
 }) {
   const visible = actors.filter((actor) => actor.alive && actor.position);
@@ -168,7 +169,7 @@ export default function Arena({
         {players.map((actor) => (
           <ActorSprite key={actor.id} actor={actor} />
         ))}
-        <Storm startedAt={zoneStartedAt} />
+        <Storm radius={zoneRadius} />
       </div>
     </div>
   );

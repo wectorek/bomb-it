@@ -31,14 +31,24 @@ function blockActivationKey(event) {
   }
 }
 
-export default function EndScreen({ status, actors, startedAt, onRestart }) {
+export default function EndScreen({
+  status,
+  actors,
+  you,
+  startedAt,
+  serverNow,
+  onRestart,
+}) {
   const buttonRef = useRef(null);
   const restartedRef = useRef(false);
-  const [elapsedMs] = useState(() => Math.max(0, Date.now() - startedAt));
+  const [elapsedMs] = useState(() =>
+    Math.max(0, (serverNow ?? Date.now()) - (startedAt ?? Date.now())),
+  );
   const heading = resultHeading(status);
   const fallen = eliminatedActors(actors);
-  const bots = actors.filter((actor) => actor.kind === "bot");
-  const player = actors.find((actor) => actor.kind === "player") ?? null;
+  const others = actors.filter((actor) => actor.id !== you);
+  const othersAreBots = others.every((actor) => actor.kind === "bot");
+  const player = actors.find((actor) => actor.id === you) ?? null;
   const clock = formatDuration(elapsedMs);
   const poseColor = player?.color ?? "blue";
   const poseSrc = playerPoseSrc(status === "win" ? "win" : "lose", poseColor);
@@ -95,7 +105,7 @@ export default function EndScreen({ status, actors, startedAt, onRestart }) {
           <h1 id="end-heading" className={styles.heading} data-status={status}>
             {heading}
           </h1>
-          <p className={styles.survivors}>{survivorSummary(actors)}</p>
+          <p className={styles.survivors}>{survivorSummary(actors, you, status)}</p>
           <div className={styles.elimination}>
             <p className={styles.sectionLabel}>Kolejność eliminacji</p>
             {fallen.length === 0 ? (
@@ -135,13 +145,13 @@ export default function EndScreen({ status, actors, startedAt, onRestart }) {
               </dl>
             </div>
           ) : null}
-          {bots.length > 0 ? (
+          {others.length > 0 ? (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
-                <caption>Boty</caption>
+                <caption>{othersAreBots ? "Boty" : "Pozostali"}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Bot</th>
+                    <th scope="col">{othersAreBots ? "Bot" : "Gracz"}</th>
                     <th scope="col">Czas</th>
                     <th scope="col">Ściany</th>
                     <th scope="col">Bonus +</th>
@@ -151,7 +161,7 @@ export default function EndScreen({ status, actors, startedAt, onRestart }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {bots.map((actor) => (
+                  {others.map((actor) => (
                     <tr
                       key={actor.id}
                       data-alive={actor.alive ? "true" : "false"}

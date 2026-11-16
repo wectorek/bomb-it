@@ -200,6 +200,96 @@
   text-align: center;
 }
 
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: min(420px, 100%);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.menuTitle {
+  margin: 0;
+  font-size: clamp(32px, 6vw, 48px);
+  letter-spacing: -0.04em;
+}
+
+.menuActions,
+.roomBox {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.roomBox {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.menuButton,
+.menuButtonSecondary {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.menuButton {
+  color: #2a1c08;
+  background: #f0c14a;
+}
+
+.menuButtonSecondary {
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 35%, transparent);
+}
+
+.menuField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  font-weight: 600;
+}
+
+.menuInput {
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 25%, transparent);
+  background: transparent;
+  color: inherit;
+}
+
+.menuError {
+  margin: 0;
+  color: #b42318;
+}
+
+.code {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 40px;
+  letter-spacing: 0.18em;
+}
+
+.seatList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 600;
+}
+
 .arena {
   position: absolute;
   left: 0;

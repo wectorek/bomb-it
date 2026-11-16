@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { moveIntervalFor } from "./actors";
 import {
   playerHitSrc,
   playerIdleSrc,
@@ -81,8 +80,7 @@ export function useWalkAnimation(actor) {
       return;
     }
 
-    const now = Date.now();
-    const interval = moveIntervalFor(actor, now);
+    const interval = actor.moveIntervalMs ?? 300;
     const pos = actor.position;
     const cellChanged = !sameCell(prevPositionRef.current, pos);
 

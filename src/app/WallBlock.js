@@ -2,7 +2,7 @@
 
 import { wallSpriteUrl } from "./assets";
 import styles from "./WallBlock.module.css";
-import { cellToPixels, wallBlockSize } from "./maze";
+import { cellToPixels, wallBlockSize } from "./board";
 
 export default function WallBlock({
   row,

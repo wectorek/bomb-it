@@ -1,52 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import styles from "./TouchControls.module.css";
 
 const MOVE_KEYS = [
-  { key: "ArrowUp", label: "Góra", className: styles.up },
-  { key: "ArrowLeft", label: "Lewo", className: styles.left },
-  { key: "ArrowDown", label: "Dół", className: styles.down },
-  { key: "ArrowRight", label: "Prawo", className: styles.right },
+  { label: "Góra", className: styles.up, direction: { row: -1, col: 0 } },
+  { label: "Lewo", className: styles.left, direction: { row: 0, col: -1 } },
+  { label: "Dół", className: styles.down, direction: { row: 1, col: 0 } },
+  { label: "Prawo", className: styles.right, direction: { row: 0, col: 1 } },
 ];
 
-function sendKey(key) {
-  window.dispatchEvent(
-    new KeyboardEvent("keydown", {
-      key,
-      code: key === " " ? "Space" : key,
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
-}
-
-function HoldButton({ label, keyName, className, children }) {
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, []);
-
+function HoldButton({ label, className, children, onPress, onRelease }) {
   function start(event) {
     event.preventDefault();
-    sendKey(keyName);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    timerRef.current = setInterval(() => sendKey(keyName), 80);
+    onPress();
   }
 
   function stop(event) {
     event.preventDefault();
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
+    onRelease?.();
   }
 
   return (
@@ -65,22 +36,23 @@ function HoldButton({ label, keyName, className, children }) {
   );
 }
 
-export default function TouchControls() {
+export default function TouchControls({ onDirection, onBomb }) {
   return (
     <div className={styles.pad}>
       <div className={styles.dpad} aria-label="Ruch">
         {MOVE_KEYS.map((item) => (
           <HoldButton
-            key={item.key}
+            key={item.label}
             label={item.label}
-            keyName={item.key}
             className={`${styles.key} ${item.className}`}
+            onPress={() => onDirection?.(item.direction)}
+            onRelease={() => onDirection?.(null)}
           >
             <span aria-hidden="true" className={styles.arrow} />
           </HoldButton>
         ))}
       </div>
-      <HoldButton label="Bomba" keyName=" " className={styles.bomb}>
+      <HoldButton label="Bomba" className={styles.bomb} onPress={() => onBomb?.()}>
         Bomba
       </HoldButton>
     </div>

@@ -38,22 +38,30 @@ function polishList(names) {
   return `${names.slice(0, -1).join(", ")} i ${names[names.length - 1]}`;
 }
 
-export function survivorSummary(actors) {
-  const alive = actors.filter((actor) => actor.alive);
-  if (alive.length === 0) {
+export function survivorSummary(actors, you, status) {
+  if (status === "win") {
+    return "Przetrwałeś.";
+  }
+  if (status === "draw") {
     return "Nikt nie przetrwał.";
   }
 
-  const playerAlive = alive.some((actor) => actor.kind === "player");
-  const bots = alive.filter((actor) => actor.kind === "bot");
-  if (playerAlive && bots.length === 0) {
-    return "Przetrwałeś.";
+  const aliveHumans = actors.filter(
+    (actor) => actor.alive && actor.kind === "player" && actor.id !== you,
+  );
+  const bots = actors.filter((actor) => actor.alive && actor.kind === "bot");
+  if (aliveHumans.length === 1) {
+    return `Wygrał ${aliveHumans[0].name}.`;
   }
-  if (!playerAlive && bots.length === 1) {
+  if (bots.length === 1 && aliveHumans.length === 0) {
     return `Przetrwał bot: ${bots[0].name}.`;
   }
-  if (!playerAlive && bots.length > 1) {
+  if (bots.length > 1 && aliveHumans.length === 0) {
     return `Przetrwały boty: ${polishList(bots.map((actor) => actor.name))}.`;
+  }
+  const alive = actors.filter((actor) => actor.alive);
+  if (alive.length === 0) {
+    return "Nikt nie przetrwał.";
   }
   return `Przetrwali: ${polishList(alive.map((actor) => actor.name))}.`;
 }

@@ -1,109 +1,97 @@
 "use client";
 
-import { useEffect } from "react";
-import { getActor, moveIntervalFor, updateActor } from "./actors";
-import { hasEffect } from "./bonus";
-import { playerInputFromKey } from "./playerMovement";
-import { useLatest } from "./useLatest";
+import { useEffect, useRef } from "react";
 
-export function usePlayerControls({
-  borders,
-  bombsEnabled,
-  blockWalls,
-  blockBombs,
-  gameStatusRef,
-  actorsRef,
-  setActors,
-  wallsRef,
-  bombsRef,
-  placeBomb,
-  throwGrenade,
-}) {
-  const placeBombRef = useLatest(placeBomb);
-  const throwGrenadeRef = useLatest(throwGrenade);
+function directionFromKey(key) {
+  switch (String(key).toLowerCase()) {
+    case "w":
+    case "arrowup":
+      return { row: -1, col: 0 };
+    case "s":
+    case "arrowdown":
+      return { row: 1, col: 0 };
+    case "a":
+    case "arrowleft":
+      return { row: 0, col: -1 };
+    case "d":
+    case "arrowright":
+      return { row: 0, col: 1 };
+    default:
+      return null;
+  }
+}
+
+function isSpaceKey(event) {
+  return event.code === "Space" || event.key === " ";
+}
+
+function isTyping(event) {
+  const tag = event.target?.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || event.target?.isContentEditable;
+}
+
+export function usePlayerControls(room) {
+  const { pressBomb, setDirection } = room;
+  const actions = useRef({ pressBomb, setDirection });
 
   useEffect(() => {
+    actions.current = { pressBomb, setDirection };
+  }, [pressBomb, setDirection]);
+
+  useEffect(() => {
+    const held = [];
+
+    function directionNow() {
+      return held.length > 0 ? held[held.length - 1].direction : null;
+    }
+
     function onKeyDown(event) {
-      const player = getActor(actorsRef.current, "player");
-      if (!player) {
+      if (isTyping(event)) {
         return;
       }
 
-      const now = Date.now();
-      const input = playerInputFromKey(event, {
-        bombsEnabled,
-        blockWalls,
-        blockBombs,
-        borders,
-        gameStatus: gameStatusRef.current,
-        position: player.position,
-        walls: wallsRef.current,
-        bombs: bombsRef.current,
-        now,
-        nextMoveAt: player.nextMoveAt,
-        hasGrenade: hasEffect(player, "grenade", now),
-      });
-
-      if (input.preventScroll) {
+      if (isSpaceKey(event)) {
         event.preventDefault();
-      }
-
-      if (!player.alive) {
-        return;
-      }
-
-      if (input.throwGrenade) {
-        const threw = throwGrenadeRef.current(
-          player.position,
-          player.facing,
-          player.id,
-        );
-        if (threw) {
-          const effects = { ...(player.effects ?? {}) };
-          delete effects.grenade;
-          const nextActors = updateActor(actorsRef.current, player.id, {
-            effects,
-          });
-          actorsRef.current = nextActors;
-          setActors(nextActors);
-        } else if (input.bombPosition) {
-          placeBombRef.current(input.bombPosition, player.id);
+        if (!event.repeat) {
+          actions.current.pressBomb();
         }
-      } else if (input.bombPosition) {
-        placeBombRef.current(input.bombPosition, player.id);
-      }
-
-      const patch = {};
-      if (input.facing && input.facing !== player.facing) {
-        patch.facing = input.facing;
-      }
-      if (input.move) {
-        patch.position = input.move.position;
-        patch.nextMoveAt =
-          input.move.at + moveIntervalFor(player, input.move.at);
-      }
-      if (patch.facing === undefined && patch.position === undefined) {
         return;
       }
 
-      const nextActors = updateActor(actorsRef.current, player.id, patch);
-      actorsRef.current = nextActors;
-      setActors(nextActors);
+      const direction = directionFromKey(event.key);
+      if (!direction) {
+        return;
+      }
+      event.preventDefault();
+      const key = event.key.toLowerCase();
+      const without = held.filter((item) => item.key !== key);
+      without.push({ key, direction });
+      held.splice(0, held.length, ...without);
+      actions.current.setDirection(direction);
+    }
+
+    function onKeyUp(event) {
+      if (isTyping(event) || !directionFromKey(event.key)) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      const next = held.filter((item) => item.key !== key);
+      held.splice(0, held.length, ...next);
+      actions.current.setDirection(directionNow());
+    }
+
+    function onBlur() {
+      held.splice(0, held.length);
+      actions.current.setDirection(null);
     }
 
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [
-    actorsRef,
-    blockBombs,
-    blockWalls,
-    bombsEnabled,
-    bombsRef,
-    borders,
-    gameStatusRef,
-    placeBombRef,
-    setActors,
-    throwGrenadeRef,
-    wallsRef,
-  ]);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
 }

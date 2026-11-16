@@ -2,8 +2,7 @@
 
 import styles from "./page.module.css";
 import tintStyles from "./ActorSprite.module.css";
-import { moveIntervalFor } from "./actors";
-import { cellToPixels, wallBlockSize } from "./maze";
+import { cellToPixels, wallBlockSize } from "./board";
 import { useWalkAnimation } from "./useWalkAnimation";
 
 export default function ActorSprite({ actor }) {
@@ -14,7 +13,7 @@ export default function ActorSprite({ actor }) {
   }
 
   const { x, y } = cellToPixels(actor.position.row, actor.position.col);
-  const interval = moveIntervalFor(actor, actor.nextMoveAt);
+  const interval = actor.moveIntervalMs ?? 300;
 
   return (
     <div

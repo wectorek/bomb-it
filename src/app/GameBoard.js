@@ -1,129 +1,70 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useMemo } from "react";
 import styles from "./page.module.css";
-import { PLAYER_START, createInitialActors } from "./actors";
 import Arena from "./Arena";
-import { createMapBorder } from "./border";
+import { createMapBorder } from "./board";
 import { BOARD_SIZE } from "./config";
 import EndScreen from "./EndScreen";
 import Hud from "./Hud";
-import { useBomb } from "./useBomb";
-import { useGameLoop } from "./useGameLoop";
-import { useLatest } from "./useLatest";
-import { useOpeningLayout } from "./useOpeningLayout";
-import { usePlayerControls } from "./usePlayerControls";
+import { useServerClock } from "./useRoom";
 
-const BORDERS = createMapBorder(BOARD_SIZE);
-const ENABLE_BOMBS = true;
-const ENABLE_WALL_COLLISION = true;
+export default function GameBoard({ snapshot, you, clock, themeId, onRestart }) {
+  const borders = useMemo(() => createMapBorder(BOARD_SIZE), []);
+  const serverNow = useServerClock(clock);
+  const bombs = [];
+  const grenades = [];
 
-export default function GameBoard({
-  onRestart,
-  zoneEnabled = false,
-  themeId = "bee",
-}) {
-  const [actors, setActors] = useState(() => createInitialActors());
-  const [walls, setWalls] = useState([]);
-  const [bonuses, setBonuses] = useState([]);
-  const [toasts, setToasts] = useState([]);
-  const [gameStatus, setGameStatus] = useState("playing");
-  const [startedAt] = useState(() => Date.now());
-  const [zoneStartedAt, setZoneStartedAt] = useState(null);
-  const zoneStartedAtRef = useRef(null);
-  const zoneSinceRef = useRef(new Map());
-
-  const actorsRef = useLatest(actors);
-  const wallsRef = useLatest(walls);
-  const bonusesRef = useLatest(bonuses);
-  const gameStatusRef = useLatest(gameStatus);
-
-  useEffect(() => {
-    if (!zoneEnabled) {
-      zoneStartedAtRef.current = null;
-      zoneSinceRef.current.clear();
-      setZoneStartedAt(null);
-      return;
+  for (const charge of snapshot.bombs ?? []) {
+    if (charge.kind === "grenade") {
+      grenades.push(charge);
+    } else {
+      bombs.push(charge);
     }
-    const now = Date.now();
-    zoneStartedAtRef.current = now;
-    zoneSinceRef.current.clear();
-    setZoneStartedAt(now);
-  }, [zoneEnabled]);
+  }
 
-  const { bombs, grenades, bombsRef, explosionCells, placeBomb, throwGrenade } =
-    useBomb({
-      borders: BORDERS,
-      wallsRef,
-      actorsRef,
-      setWalls,
-      setActors,
-      setGameStatus,
-      gameStatusRef,
-      bonusesRef,
-      setBonuses,
-    });
+  const explosionCells = [];
+  const seenCells = new Set();
+  for (const blast of snapshot.explosions ?? []) {
+    if (typeof blast.until === "number" && blast.until <= serverNow) {
+      continue;
+    }
+    for (const cell of blast.cells ?? []) {
+      const key = `${cell.row},${cell.col}`;
+      if (seenCells.has(key)) {
+        continue;
+      }
+      seenCells.add(key);
+      explosionCells.push(cell);
+    }
+  }
 
-  useOpeningLayout({
-    playerStart: PLAYER_START,
-    borders: BORDERS,
-    wallsRef,
-    setWalls,
-    actorsRef,
-    setActors,
-  });
-
-  usePlayerControls({
-    borders: BORDERS,
-    bombsEnabled: ENABLE_BOMBS,
-    blockWalls: ENABLE_WALL_COLLISION,
-    blockBombs: ENABLE_BOMBS,
-    gameStatusRef,
-    actorsRef,
-    setActors,
-    wallsRef,
-    bombsRef,
-    placeBomb,
-    throwGrenade,
-  });
-
-  useGameLoop({
-    borders: BORDERS,
-    wallsRef,
-    actorsRef,
-    setActors,
-    bombsRef,
-    gameStatusRef,
-    placeBomb,
-    throwGrenade,
-    bonusesRef,
-    setBonuses,
-    setToasts,
-    setGameStatus,
-    zoneStartedAtRef,
-    zoneSinceRef,
-  });
+  const toasts = (snapshot.toasts ?? []).filter(
+    (toast) => toast.until == null || toast.until > serverNow,
+  );
 
   return (
     <div className={styles.gameWrapper}>
-      <Hud actors={actors} />
+      <Hud actors={snapshot.actors ?? []} clock={clock} />
       <Arena
-        walls={walls}
-        borders={BORDERS}
-        actors={actors}
+        walls={snapshot.walls ?? []}
+        borders={borders}
+        actors={snapshot.actors ?? []}
         bombs={bombs}
         grenades={grenades}
-        bonuses={bonuses}
+        bonuses={snapshot.bonuses ?? []}
         toasts={toasts}
         explosionCells={explosionCells}
-        zoneStartedAt={zoneStartedAt}
+        zoneRadius={snapshot.zone?.radius ?? null}
         themeId={themeId}
       />
-      {gameStatus === "playing" ? null : (
+      {snapshot.status === "playing" ? null : (
         <EndScreen
-          status={gameStatus}
-          actors={actors}
-          startedAt={startedAt}
+          status={snapshot.status}
+          actors={snapshot.actors ?? []}
+          you={you}
+          startedAt={snapshot.startedAt}
+          serverNow={serverNow}
           onRestart={onRestart}
         />
       )}
