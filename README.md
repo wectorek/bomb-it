@@ -18,7 +18,7 @@ Gra jest pod adresem [http://localhost:3000](http://localhost:3000).
 - **M** — włącz lub wyłącz muzykę (na starcie jest wyciszona). Klik w głośnik otwiera utwory, wyciszenie, strefę i motyw planszy
 - **Enter** — nowa runda na ekranie końcowym
 
-Żywopłot niszczy się jak skrzynka i odrasta po 8 sekundach, jeśli pole jest wolne. Motyw planszy (główny, pszczeli, religijny, AI, kosmiczny) zmienia podłogę i ściany. Główny to wygląd sprzed motywów: ciemna podłoga, drewno i kamień.
+Żywopłot niszczy się jak skrzynka i odrasta po 8 sekundach, jeśli pole jest wolne. Motyw planszy (główny, pszczeli, religijny, AI, kosmiczny, bank) zmienia podłogę i ściany. Główny to wygląd sprzed motywów: ciemna podłoga, drewno i kamień. Strefa schodzi kwadratami, po jednym pierścieniu pól na raz.
 
 ## Bonusy
 

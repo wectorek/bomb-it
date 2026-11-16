@@ -4,14 +4,31 @@
   z-index: 2;
   pointer-events: none;
   background: rgba(98, 42, 186, 0.42);
-  -webkit-mask-image: radial-gradient(
-    circle at center,
-    transparent var(--safe),
-    #000 calc(var(--safe) + 22px)
-  );
-  mask-image: radial-gradient(
-    circle at center,
-    transparent var(--safe),
-    #000 calc(var(--safe) + 22px)
-  );
+  --band: var(--inset, 0px);
+  -webkit-mask-image:
+    linear-gradient(#000, #000),
+    linear-gradient(#000, #000),
+    linear-gradient(#000, #000),
+    linear-gradient(#000, #000);
+  -webkit-mask-size:
+    100% var(--band),
+    100% var(--band),
+    var(--band) 100%,
+    var(--band) 100%;
+  -webkit-mask-position: top, bottom, left, right;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-composite: source-over;
+  mask-image:
+    linear-gradient(#000, #000),
+    linear-gradient(#000, #000),
+    linear-gradient(#000, #000),
+    linear-gradient(#000, #000);
+  mask-size:
+    100% var(--band),
+    100% var(--band),
+    var(--band) 100%,
+    var(--band) 100%;
+  mask-position: top, bottom, left, right;
+  mask-repeat: no-repeat;
+  mask-composite: add;
 }

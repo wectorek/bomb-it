@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "./Storm.module.css";
-import { safeRadius, safeRadiusPixels } from "./zone";
+import { safeHalf, stormInsetPixels } from "./zone";
 
 export default function Storm({ startedAt }) {
   const [now, setNow] = useState(() => Date.now());
@@ -16,12 +16,12 @@ export default function Storm({ startedAt }) {
     return null;
   }
 
-  const radius = safeRadiusPixels(safeRadius(now - startedAt));
+  const inset = stormInsetPixels(safeHalf(now - startedAt));
 
   return (
     <div
       className={styles.storm}
-      style={{ "--safe": `${radius}px` }}
+      style={{ "--inset": `${inset}px` }}
       aria-hidden="true"
     />
   );

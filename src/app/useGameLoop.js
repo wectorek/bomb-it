@@ -14,7 +14,7 @@ import { nextBotTurn } from "./bot";
 import { GAME_TICK_MS, TOAST_MS } from "./config";
 import { facingFromDirection } from "./playerMovement";
 import { useLatest } from "./useLatest";
-import { applyZoneDamage, safeRadius } from "./zone";
+import { applyZoneDamage, safeHalf } from "./zone";
 
 // Tick planszy: wygasanie efektów, ruch botów i zebranie bonusów spod nóg.
 export function useGameLoop({
@@ -130,8 +130,8 @@ export function useGameLoop({
       showToasts(pickup.collected, now);
 
       if (zoneStartedAtRef.current != null) {
-        const radius = safeRadius(now - zoneStartedAtRef.current);
-        const zoned = applyZoneDamage(next, radius, now, zoneSinceRef.current);
+        const half = safeHalf(now - zoneStartedAtRef.current);
+        const zoned = applyZoneDamage(next, half, now, zoneSinceRef.current);
         if (zoned !== next) {
           next = zoned;
           const status = computeGameStatus(next);

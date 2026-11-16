@@ -117,6 +117,15 @@ export const THEMES = [
     border: "/themes/cosmos/border.png",
     hedge: "/themes/cosmos/hedge.png",
   },
+  {
+    id: "bank",
+    name: "Bank",
+    floor: "/themes/bank/floor.png",
+    solid: "/themes/bank/solid.png",
+    destructible: "/themes/bank/destructible.png",
+    border: "/themes/bank/border.png",
+    hedge: "/themes/bank/hedge.png",
+  },
 ];
 
 export function themeById(id) {
