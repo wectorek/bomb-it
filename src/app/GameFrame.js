@@ -62,6 +62,12 @@ export default function GameFrame() {
     }
   }
 
+  function exitToMenu() {
+    if (window.confirm("Przerwać grę i wrócić do menu głównego?")) {
+      room.disconnect();
+    }
+  }
+
   const inGame =
     room.connection === "live" &&
     room.snapshot != null &&
@@ -79,18 +85,13 @@ export default function GameFrame() {
           {uiTheme === "dark" ? "☀ Motyw jasny" : "☾ Motyw ciemny"}
         </button>
       )}
-      <button
-        type="button"
-        className={`${styles.fullscreenButton} ${inGame ? "" : styles.menuFullscreen}`}
-        onClick={toggleFullscreen}
-        onKeyDown={(event) => event.preventDefault()}
-      >
-        {fullscreen ? "Zamknij pełny ekran" : "Pełny ekran"}
-      </button>
       <MusicToggle
         themeId={themeId}
         onThemeChange={setThemeId}
         showBoardThemes={inGame}
+        fullscreen={fullscreen}
+        onToggleFullscreen={toggleFullscreen}
+        onExit={inGame ? exitToMenu : null}
       />
       {inGame ? (
         <TouchControls onDirection={room.setDirection} onBomb={room.pressBomb} />

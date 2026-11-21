@@ -13,6 +13,9 @@ export default function MusicToggle({
   themeId = "bee",
   onThemeChange,
   showBoardThemes = true,
+  fullscreen = false,
+  onToggleFullscreen,
+  onExit = null,
 }) {
   const { muted, playing, track, tracks, refresh, toggleMute, selectTrack } =
     useBackgroundMusic();
@@ -69,6 +72,32 @@ export default function MusicToggle({
       ) : null}
       {open ? (
         <div className={styles.menu} role="menu" aria-label="Opcje">
+          <button
+            type="button"
+            className={styles.menuItem}
+            role="menuitem"
+            onClick={(event) => {
+              onToggleFullscreen?.(event);
+              setOpen(false);
+            }}
+            onKeyDown={keepSpaceForBombs}
+          >
+            {fullscreen ? "Zamknij pełny ekran" : "Pełny ekran"}
+          </button>
+          {onExit ? (
+            <button
+              type="button"
+              className={styles.menuItem}
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onExit();
+              }}
+              onKeyDown={keepSpaceForBombs}
+            >
+              Menu główne
+            </button>
+          ) : null}
           {(showBoardThemes ? THEMES : []).map((theme) => (
             <button
               key={theme.id}
@@ -127,7 +156,7 @@ export default function MusicToggle({
       <button
         type="button"
         className={styles.button}
-        aria-label="Opcje: muzyka"
+        aria-label="Ustawienia"
         aria-expanded={open}
         aria-haspopup="menu"
         title={trackLabel}

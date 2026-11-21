@@ -248,3 +248,49 @@
 .menuLink:hover {
   background: rgba(255, 255, 255, 0.1);
 }
+
+.multi {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.multiList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.multiRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.multiName {
+  flex: 1;
+}
+
+.multiSmall {
+  appearance: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d9c7a4;
+  background: transparent;
+  color: #f6f1e8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.restart:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

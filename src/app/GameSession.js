@@ -194,7 +194,7 @@ function Menu({ room, zoneEnabled }) {
 
 function Lobby({ room }) {
   const actors = room.snapshot?.actors ?? [];
-  const isHost = actors[0]?.id === room.you;
+  const isHost = room.snapshot?.host === room.you;
   const fillBots = room.snapshot?.fillBots === true;
   const canStart = isHost && actors.length >= 2;
 
@@ -214,6 +214,16 @@ function Lobby({ room }) {
             />
             {actor.name}
             {actor.id === room.you ? " (Ty)" : ""}
+            {actor.id === room.snapshot?.host ? " · host" : ""}
+            {isHost && actor.id !== room.you ? (
+              <button
+                type="button"
+                className={styles.menuButtonSecondary}
+                onClick={() => room.transferHost(actor.id)}
+              >
+                Przekaż hosta
+              </button>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -231,6 +241,12 @@ function Lobby({ room }) {
       ) : (
         <p>{fillBots ? "Wolne miejsca zajmą boty." : "Bez botów."}</p>
       )}
+      {isHost && room.snapshot?.settings ? (
+        <AdvancedSettings
+          value={room.snapshot.settings}
+          onChange={(settings) => room.updateSettings({ settings })}
+        />
+      ) : null}
       <div className={styles.menuStack}>
         {isHost ? (
           <>
@@ -288,8 +304,28 @@ export default function GameSession({ room, zoneEnabled, themeId }) {
     return <Lobby room={room} />;
   }
 
+  const players = (room.snapshot.actors ?? []).filter(
+    (actor) => actor.kind === "player",
+  );
+  const multi =
+    players.length > 1
+      ? {
+          hostId: room.snapshot.host,
+          isHost: room.snapshot.host === room.you,
+          players,
+          ready: room.snapshot.ready ?? [],
+          fillBots: room.snapshot.fillBots === true,
+          settings: room.snapshot.settings ?? null,
+          onReady: room.setReady,
+          onStart: room.restart,
+          onTransfer: room.transferHost,
+          onUpdate: room.updateSettings,
+        }
+      : null;
+
   return (
     <GameBoard
+      multi={multi}
       snapshot={room.snapshot}
       you={room.you}
       clock={room.clock}

@@ -181,6 +181,21 @@ export function useRoom() {
     [send],
   );
 
+  const setReady = useCallback(
+    (ready) => send({ type: "ready", ready }),
+    [send],
+  );
+
+  const updateSettings = useCallback(
+    (patch) => send({ type: "settings", ...patch }),
+    [send],
+  );
+
+  const transferHost = useCallback(
+    (to) => send({ type: "transferHost", to }),
+    [send],
+  );
+
   const restart = useCallback(() => {
     seqRef.current = 0;
     send({ type: "restart" });
@@ -253,6 +268,9 @@ export function useRoom() {
     join,
     restart,
     setFillBots,
+    setReady,
+    updateSettings,
+    transferHost,
     setDirection,
     pressBomb,
     disconnect,

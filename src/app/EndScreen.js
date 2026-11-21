@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./EndScreen.module.css";
+import MultiEndPanel from "./MultiEndPanel";
 import { playerPoseSrc } from "./assets";
 import {
   bonusSummary,
@@ -39,6 +40,7 @@ export default function EndScreen({
   serverNow,
   onRestart,
   onExit,
+  multi = null,
 }) {
   const buttonRef = useRef(null);
   const restartedRef = useRef(false);
@@ -81,7 +83,7 @@ export default function EndScreen({
         return;
       }
 
-      if (event.key !== "Enter") {
+      if (event.key !== "Enter" || multi) {
         return;
       }
 
@@ -91,7 +93,7 @@ export default function EndScreen({
 
     window.addEventListener("keydown", onKeyDown, true);
     return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, [restart]);
+  }, [restart, multi]);
 
   return (
     <div
@@ -190,17 +192,21 @@ export default function EndScreen({
             </div>
           ) : null}
           <div className={styles.actions}>
-            <button
-              ref={buttonRef}
-              type="button"
-              className={styles.restart}
-              autoFocus
-              onClick={restart}
-              onKeyDown={blockActivationKey}
-              onKeyUp={blockActivationKey}
-            >
-              Zagraj ponownie
-            </button>
+            {multi ? (
+              <MultiEndPanel multi={multi} you={you} />
+            ) : (
+              <button
+                ref={buttonRef}
+                type="button"
+                className={styles.restart}
+                autoFocus
+                onClick={restart}
+                onKeyDown={blockActivationKey}
+                onKeyUp={blockActivationKey}
+              >
+                Zagraj ponownie
+              </button>
+            )}
             {onExit ? (
               <button
                 type="button"
@@ -212,7 +218,9 @@ export default function EndScreen({
                 Menu główne
               </button>
             ) : null}
-            <p className={styles.hint}>Enter zaczyna nową rundę.</p>
+            {multi ? null : (
+              <p className={styles.hint}>Enter zaczyna nową rundę.</p>
+            )}
           </div>
         </div>
       </div>

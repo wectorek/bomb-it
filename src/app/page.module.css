@@ -496,9 +496,6 @@
   cursor: pointer;
 }
 
-:fullscreen .gameWrapper .board {
-  width: min(calc(100vw - 220px), 94vmin);
-}
 
 .exitButton,
 .menuFullscreen {
@@ -561,4 +558,71 @@
 .choiceSmall {
   padding: 8px 4px;
   font-size: 14px;
+}
+
+/* Telefon pionowo: plansza na całą szerokość, gracze w pasku pod nią. */
+@media ((max-width: 820px) or (pointer: coarse)) and (orientation: portrait) {
+  .page {
+    padding: calc(56px + env(safe-area-inset-top)) 4px
+      calc(190px + env(safe-area-inset-bottom));
+  }
+
+  .gameWrapper {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gameWrapper .board {
+    width: min(
+      calc(100vw - 8px),
+      calc(100dvh - 56px - 190px - 70px - env(safe-area-inset-top) - env(safe-area-inset-bottom))
+    );
+  }
+
+  .hud {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .hudActor {
+    flex-wrap: nowrap;
+    padding: 4px 8px;
+    border-left-width: 4px;
+  }
+
+  .hudLives {
+    width: auto;
+  }
+}
+
+/* Telefon poziomo: plansza na całą wysokość, gracze obok. */
+@media ((max-width: 900px) or (pointer: coarse)) and (orientation: landscape) and (max-height: 520px) {
+  .page {
+    padding: 4px;
+    min-height: 100dvh;
+    justify-content: center;
+  }
+
+  .gameWrapper {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .gameWrapper .board {
+    width: min(calc(100dvh - 8px), calc(100vw - 140px));
+  }
+
+  .hud {
+    width: 110px;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .hudActor {
+    padding: 4px 8px;
+  }
 }
