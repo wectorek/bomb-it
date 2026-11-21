@@ -3,6 +3,8 @@
 import styles from "./page.module.css";
 import { ASSETS } from "./assets";
 import bonusStyles from "./bonus.module.css";
+import { formatDuration } from "./gameStats";
+import { teamById } from "./teams";
 import { useServerClock } from "./useRoom";
 
 const EFFECT_ICON = {
@@ -82,30 +84,94 @@ function EffectList({ actor, clock, serverNow }) {
   );
 }
 
-export default function Hud({ actors = [], clock = null }) {
-  const serverNow = useServerClock(clock);
+function ActorRow({ actor, mode, clock, serverNow }) {
+  const team = teamById(actor.team);
+  return (
+    <span
+      className={styles.hudActor}
+      style={{ "--dot": HUD_DOT[actor.color] ?? actor.color }}
+    >
+      <span
+        className={styles.hudDot}
+        style={{ backgroundColor: HUD_DOT[actor.color] ?? actor.color }}
+      />
+      <span className={actor.alive ? undefined : styles.hudDead}>
+        {actor.name}
+      </span>
+      {team ? (
+        <span className={styles.hudTeamChip} style={{ "--team": team.color }}>
+          {team.short}
+        </span>
+      ) : null}
+      <span className={styles.hudLives}>{livesLabel(actor.lives)}</span>
+      {mode === "hill" ? (
+        <span className={styles.hudScore}>{actor.score ?? 0} pkt</span>
+      ) : null}
+      {actor.alive ? (
+        <EffectList actor={actor} clock={clock} serverNow={serverNow} />
+      ) : null}
+    </span>
+  );
+}
+
+export default function Hud({
+  actors = [],
+  clock = null,
+  mode = "classic",
+  finaleStartsAt = null,
+  finaleActive = false,
+  serverNow: serverNowProp = null,
+}) {
+  const tickNow = useServerClock(clock);
+  const serverNow = serverNowProp ?? tickNow;
+  const finaleLeft =
+    !finaleActive && finaleStartsAt != null
+      ? Math.max(0, finaleStartsAt - serverNow)
+      : null;
+  const teamed = mode === "teams" && actors.some((actor) => teamById(actor.team));
 
   return (
     <div className={styles.hud}>
-      {actors.map((actor) => (
-        <span
-          key={actor.id}
-          className={styles.hudActor}
-          style={{ "--dot": HUD_DOT[actor.color] ?? actor.color }}
-        >
-          <span
-            className={styles.hudDot}
-            style={{ backgroundColor: HUD_DOT[actor.color] ?? actor.color }}
-          />
-          <span className={actor.alive ? undefined : styles.hudDead}>
-            {actor.name}
-          </span>
-          <span className={styles.hudLives}>{livesLabel(actor.lives)}</span>
-          {actor.alive ? (
-            <EffectList actor={actor} clock={clock} serverNow={serverNow} />
-          ) : null}
-        </span>
-      ))}
+      {finaleLeft != null ? (
+        <p className={styles.hudTimer}>
+          Rozwolnienie za {formatDuration(finaleLeft)}
+        </p>
+      ) : null}
+      {teamed
+        ? [0, 1].map((id) => {
+            const team = teamById(id);
+            const group = actors.filter((actor) => actor.team === id);
+            if (group.length === 0) {
+              return null;
+            }
+            return (
+              <div
+                key={team.id}
+                className={styles.hudTeam}
+                style={{ "--team": team.color }}
+              >
+                <p className={styles.hudTeamLabel}>{team.label}</p>
+                {group.map((actor) => (
+                  <ActorRow
+                    key={actor.id}
+                    actor={actor}
+                    mode={mode}
+                    clock={clock}
+                    serverNow={serverNow}
+                  />
+                ))}
+              </div>
+            );
+          })
+        : actors.map((actor) => (
+            <ActorRow
+              key={actor.id}
+              actor={actor}
+              mode={mode}
+              clock={clock}
+              serverNow={serverNow}
+            />
+          ))}
     </div>
   );
 }

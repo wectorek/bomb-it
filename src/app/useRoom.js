@@ -243,6 +243,13 @@ export function useRoom() {
     sendInput("bomb");
   }, [sendInput]);
 
+  const sendChat = useCallback(
+    (text) => {
+      send({ type: "chat", text });
+    },
+    [send],
+  );
+
   const disconnect = useCallback(() => {
     send({ type: "leave" });
     closeSocket();
@@ -273,6 +280,7 @@ export function useRoom() {
     transferHost,
     setDirection,
     pressBomb,
+    sendChat,
     disconnect,
   };
 }

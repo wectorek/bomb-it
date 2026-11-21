@@ -31,7 +31,8 @@ function isTyping(event) {
 }
 
 export function usePlayerControls(room) {
-  const { pressBomb, setDirection } = room;
+  const pressBomb = room?.pressBomb;
+  const setDirection = room?.setDirection;
   const actions = useRef({ pressBomb, setDirection });
 
   useEffect(() => {
@@ -39,6 +40,9 @@ export function usePlayerControls(room) {
   }, [pressBomb, setDirection]);
 
   useEffect(() => {
+    if (!room) {
+      return undefined;
+    }
     const held = [];
 
     function directionNow() {
@@ -93,5 +97,5 @@ export function usePlayerControls(room) {
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
     };
-  }, []);
+  }, [room]);
 }

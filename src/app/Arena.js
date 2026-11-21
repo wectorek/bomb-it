@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { ASSETS, themeById } from "./assets";
+import finaleStyles from "./FinaleRain.module.css";
 import styles from "./page.module.css";
 import ActorSprite from "./ActorSprite";
 import bonusStyles from "./bonus.module.css";
@@ -53,6 +55,28 @@ function BonusPickup({ bonus }) {
   );
 }
 
+function DropMarker({ drop, serverNow }) {
+  // Czas spadania ustawiamy raz, przy pojawieniu się kawałka.
+  const [ms] = useState(() => Math.max(150, drop.landAt - serverNow));
+  const { x, y } = cellToPixels(drop.row, drop.col);
+  const box = {
+    left: `${x}px`,
+    top: `${y}px`,
+    width: `${wallBlockSize}px`,
+    height: `${wallBlockSize}px`,
+    "--drop-ms": `${ms}ms`,
+  };
+
+  return (
+    <>
+      <div className={finaleStyles.dropShadow} style={box} aria-hidden="true" />
+      <div className={finaleStyles.dropPiece} style={box} aria-hidden="true">
+        💩
+      </div>
+    </>
+  );
+}
+
 function GrenadeMarker({ grenade }) {
   const to = cellToPixels(grenade.row, grenade.col);
   const fromCell = grenade.from ?? {
@@ -91,8 +115,14 @@ export default function Arena({
   bonuses = [],
   toasts = [],
   explosionCells = [],
+  previewCells = [],
+  drops = [],
+  mess = [],
+  serverNow = 0,
   zoneRadius = null,
+  hillCells = [],
   themeId = "bee",
+  focusActorId = null,
 }) {
   const visible = actors.filter((actor) => actor.alive && actor.position);
   const bots = visible.filter((actor) => actor.kind === "bot");
@@ -140,8 +170,29 @@ export default function Arena({
             themeId={themeId}
           />
         ))}
+        {mess.map((spot) => (
+          <CellMarker
+            key={`mess-${spot.row},${spot.col}`}
+            cell={spot}
+            className={finaleStyles.mess}
+          />
+        ))}
         {bonuses.map((bonus) => (
           <BonusPickup key={`bonus-${bonus.id}`} bonus={bonus} />
+        ))}
+        {hillCells.map((cell) => (
+          <CellMarker
+            key={`hill-${cell.row},${cell.col}`}
+            cell={cell}
+            className={styles.hillCell}
+          />
+        ))}
+        {previewCells.map((cell) => (
+          <CellMarker
+            key={`preview-${cell.row},${cell.col}`}
+            cell={cell}
+            className={styles.bombPreview}
+          />
         ))}
         {explosionCells.map((cell) => (
           <CellMarker
@@ -167,7 +218,14 @@ export default function Arena({
           <ActorSprite key={actor.id} actor={actor} />
         ))}
         {players.map((actor) => (
-          <ActorSprite key={actor.id} actor={actor} />
+          <ActorSprite
+            key={actor.id}
+            actor={actor}
+            highlight={actor.id === focusActorId}
+          />
+        ))}
+        {drops.map((drop) => (
+          <DropMarker key={`drop-${drop.id}`} drop={drop} serverNow={serverNow} />
         ))}
         <Storm radius={zoneRadius} />
       </div>

@@ -3,7 +3,9 @@
   flex: 1;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
+  min-height: 100dvh;
+  overflow-y: auto;
   font-family: var(--font-geist-sans);
   background-color: var(--background);
 }
@@ -39,6 +41,115 @@
   object-fit: contain;
   pointer-events: none;
   user-select: none;
+}
+
+.countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-size: clamp(3rem, 16vmin, 6rem);
+  font-weight: 800;
+  color: var(--foreground);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+}
+
+.bombPreview {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 2;
+  background: rgba(255, 120, 40, 0.28);
+  outline: 2px solid rgba(255, 90, 0, 0.55);
+}
+
+:global(:root[data-contrast="high"]) .bombPreview {
+  outline-width: 5px;
+  background: rgba(255, 200, 0, 0.35);
+}
+
+.hillCell {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 1;
+  background: rgba(80, 200, 120, 0.16);
+  outline: 1px dashed rgba(60, 160, 90, 0.45);
+}
+
+.spectatorBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  justify-content: center;
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.spectatorButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.actorFocus {
+  filter: drop-shadow(0 0 6px rgba(255, 240, 120, 0.85));
+}
+
+.hudScore {
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
+.hudTimer {
+  width: 100%;
+  text-align: center;
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.chatPanel,
+.chatCompact {
+  margin: 0.75rem 0;
+  max-width: 28rem;
+}
+
+.chatCompact {
+  margin: 0.5rem 0;
+}
+
+.chatLog {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  max-height: 6rem;
+  overflow: auto;
+  font-size: 0.85rem;
+}
+
+.chatEmojiRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.chatEmoji {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--foreground);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.chatForm {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
 }
 
 .bomb {
@@ -212,6 +323,51 @@
   opacity: 0.55;
 }
 
+.hudTeam {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 16px;
+  border: 3px solid var(--team, #888);
+  background: color-mix(in srgb, var(--team, #888) 18%, transparent);
+}
+
+.hudTeamLabel {
+  margin: 0;
+  font-size: 0.78em;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--team, inherit);
+}
+
+.hudTeamChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4em;
+  padding: 0 0.3em;
+  border-radius: 999px;
+  background: var(--team);
+  color: #1a1208;
+  font-size: 0.75em;
+  font-weight: 800;
+}
+
+.seatTeam {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6em;
+  height: 1.6em;
+  border-radius: 999px;
+  background: var(--team);
+  color: #1a1208;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .gameOver {
   font-size: 20px;
   font-weight: 700;
@@ -224,7 +380,7 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  width: min(420px, 100%);
+  width: min(560px, 100%);
   color: var(--text-primary);
   text-align: center;
 }
@@ -588,6 +744,10 @@
     font-size: 12px;
   }
 
+  .hudTeam {
+    flex: 1 1 140px;
+  }
+
   .hudActor {
     flex-wrap: nowrap;
     padding: 4px 8px;
@@ -625,4 +785,60 @@
   .hudActor {
     padding: 4px 8px;
   }
+}
+
+.menuBackdrop,
+.menuBackdropTint {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.menuBackdrop {
+  background: url("/menu-hero.jpg") center / cover no-repeat;
+  filter: blur(14px);
+  transform: scale(1.1);
+}
+
+.menuBackdropTint {
+  background: color-mix(in srgb, var(--background) 45%, transparent);
+}
+
+.menu > :not(.menuBackdrop):not(.menuBackdropTint) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Pełny ekran: większe napisy i przyciski. */
+:fullscreen .menu,
+:fullscreen .hud,
+:fullscreen .themeSwitch {
+  zoom: 1.35;
+}
+
+@media (min-width: 821px) and (pointer: fine) {
+  :fullscreen .gameWrapper .board {
+    width: min(calc(100vw - 340px), 90vmin);
+  }
+}
+
+/* Wysoki kontrast: wyraźna siatka pól. */
+:global(:root[data-contrast="high"]) .arena::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, #000 0 3px, transparent 3px),
+    linear-gradient(to bottom, #000 0 3px, transparent 3px),
+    linear-gradient(to right, #fff 0 1px, transparent 1px),
+    linear-gradient(to bottom, #fff 0 1px, transparent 1px);
+  background-size:
+    calc(100% / var(--board-size, 15)) calc(100% / var(--board-size, 15)),
+    calc(100% / var(--board-size, 15)) calc(100% / var(--board-size, 15)),
+    calc(100% / var(--board-size, 15)) calc(100% / var(--board-size, 15)),
+    calc(100% / var(--board-size, 15)) calc(100% / var(--board-size, 15));
+  background-position: 0 0, 0 0, 3px 3px, 3px 3px;
 }

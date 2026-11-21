@@ -1,0 +1,196 @@
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: min(12px, 1.5vh);
+  overflow: hidden;
+  color: #f6f1e8;
+  background: radial-gradient(circle at 50% 40%, #2d5a3d 0%, #14281c 70%);
+}
+
+.stage {
+  position: relative;
+  width: min(360px, 80vw);
+  height: min(260px, 28vh);
+}
+
+.bee {
+  position: absolute;
+  width: 26%;
+  left: 37%;
+  top: 30%;
+  opacity: 0;
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+.beeBlue {
+  animation-name: in-blue, scatter-blue;
+  animation-delay: 0s, 1.75s;
+  animation-duration: 0.9s, 0.5s;
+}
+.beeRed {
+  animation-name: in-red, scatter-red;
+  animation-delay: 0.1s, 1.75s;
+  animation-duration: 0.9s, 0.5s;
+}
+.beeGreen {
+  animation-name: in-green, scatter-green;
+  animation-delay: 0.2s, 1.75s;
+  animation-duration: 0.9s, 0.5s;
+}
+.beePurple {
+  animation-name: in-purple, scatter-purple;
+  animation-delay: 0.3s, 1.75s;
+  animation-duration: 0.9s, 0.5s;
+}
+
+@keyframes in-blue {
+  from { opacity: 0; transform: translate(-260%, -120%); }
+  to { opacity: 1; transform: translate(-130%, -40%); }
+}
+@keyframes in-red {
+  from { opacity: 0; transform: translate(260%, -120%); }
+  to { opacity: 1; transform: translate(130%, -40%); }
+}
+@keyframes in-green {
+  from { opacity: 0; transform: translate(-260%, 120%); }
+  to { opacity: 1; transform: translate(-130%, 90%); }
+}
+@keyframes in-purple {
+  from { opacity: 0; transform: translate(260%, 120%); }
+  to { opacity: 1; transform: translate(130%, 90%); }
+}
+@keyframes scatter-blue {
+  from { opacity: 1; transform: translate(-130%, -40%); }
+  to { opacity: 0; transform: translate(-420%, -220%) rotate(-40deg); }
+}
+@keyframes scatter-red {
+  from { opacity: 1; transform: translate(130%, -40%); }
+  to { opacity: 0; transform: translate(420%, -220%) rotate(40deg); }
+}
+@keyframes scatter-green {
+  from { opacity: 1; transform: translate(-130%, 90%); }
+  to { opacity: 0; transform: translate(-420%, 240%) rotate(40deg); }
+}
+@keyframes scatter-purple {
+  from { opacity: 1; transform: translate(130%, 90%); }
+  to { opacity: 0; transform: translate(420%, 240%) rotate(-40deg); }
+}
+
+.bomb {
+  position: absolute;
+  width: 22%;
+  left: 39%;
+  top: 34%;
+  opacity: 0;
+  animation:
+    bomb-drop 0.5s 0.9s cubic-bezier(0.3, 1.6, 0.5, 1) forwards,
+    bomb-throb 0.25s 1.4s 2 ease-in-out,
+    bomb-gone 0.01s 1.75s forwards;
+}
+
+@keyframes bomb-drop {
+  from { opacity: 0; transform: translateY(-300%) scale(0.8); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes bomb-throb {
+  50% { transform: scale(1.18); filter: brightness(1.5); }
+}
+@keyframes bomb-gone {
+  to { opacity: 0; }
+}
+
+.boom {
+  position: absolute;
+  width: 70%;
+  left: 15%;
+  top: 0;
+  opacity: 0;
+  transform: scale(0.2);
+  animation: boom 0.55s 1.75s ease-out forwards;
+}
+
+@keyframes boom {
+  0% { opacity: 1; transform: scale(0.2); }
+  60% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+.flash {
+  position: fixed;
+  inset: 0;
+  background: #fff6df;
+  opacity: 0;
+  pointer-events: none;
+  animation: flash 0.5s 1.75s ease-out;
+}
+
+@keyframes flash {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  font-size: min(14vw, 104px, 15vh);
+  letter-spacing: -0.03em;
+  color: #f0c14a;
+  text-shadow: 0 4px 0 #8a5a14, 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.letter {
+  display: inline-block;
+  opacity: 0;
+  animation: letter 0.45s ease-out forwards;
+}
+
+@keyframes letter {
+  from { opacity: 0; transform: translateY(40px) scale(0.6); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tagline {
+  margin: 0;
+  opacity: 0;
+  animation: fade 0.6s 2.8s forwards;
+}
+
+.play {
+  appearance: none;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 16px;
+  padding: min(16px, 2.5vh) 56px;
+  font: inherit;
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, #2fb45a, #1f8d43);
+  box-shadow: 0 6px 0 #166a32, 0 10px 24px rgba(31, 141, 67, 0.4);
+  cursor: pointer;
+  opacity: 0;
+  animation: fade 0.6s 3.1s forwards;
+}
+
+.play:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #166a32;
+}
+
+@keyframes fade {
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro * {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+  }
+}

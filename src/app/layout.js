@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Bomb-It",
+  title: "Bomb It",
   description: "Gra w labirynt: bomby, boty i bonusy.",
 };
 

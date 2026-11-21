@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import GameSession from "./GameSession";
+import Intro from "./Intro";
 import MusicToggle from "./MusicToggle";
 import TouchControls from "./TouchControls";
 import { usePlayerControls } from "./usePlayerControls";
+import { playSfx } from "./sfx";
 import { useRoom } from "./useRoom";
 import styles from "./page.module.css";
 
@@ -28,7 +30,6 @@ export default function GameFrame() {
   const [uiTheme, setUiTheme] = useState("light");
   const [themeId, setThemeId] = useState("bee");
   const [themeReady, setThemeReady] = useState(false);
-  usePlayerControls(room);
 
   useEffect(() => {
     // Motyw zależy od localStorage, więc da się go znać dopiero po hydracji.
@@ -45,6 +46,50 @@ export default function GameFrame() {
     window.localStorage.setItem(THEME_KEY, uiTheme);
   }, [uiTheme, themeReady]);
 
+  useEffect(() => {
+    function onClick(event) {
+      const button = event.target.closest?.("button");
+      if (!button || button.disabled) {
+        return;
+      }
+      const cls = button.className || "";
+      if (cls.includes("TouchControls") || cls.includes("Intro")) {
+        return;
+      }
+      const label = button.textContent || "";
+      if (label.includes("←") || label.includes("Menu główne") || label.includes("Wyjdź")) {
+        playSfx("back");
+      } else if (cls.includes("startButton")) {
+        playSfx("start");
+      } else if (cls.includes("choice") || cls.includes("swatch")) {
+        playSfx("select");
+      } else {
+        playSfx("click");
+      }
+    }
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
+
+  const [contrast, setContrast] = useState(false);
+  const [contrastReady, setContrastReady] = useState(false);
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setContrast(window.localStorage.getItem("bomb-it-contrast") === "high");
+    setContrastReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  useEffect(() => {
+    if (!contrastReady) {
+      return;
+    }
+    document.documentElement.dataset.contrast = contrast ? "high" : "normal";
+    window.localStorage.setItem("bomb-it-contrast", contrast ? "high" : "normal");
+  }, [contrast, contrastReady]);
+
+  const [introDone, setIntroDone] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
@@ -72,10 +117,25 @@ export default function GameFrame() {
     room.connection === "live" &&
     room.snapshot != null &&
     room.snapshot.status !== "lobby";
+  const self = (room.snapshot?.actors ?? []).find((a) => a.id === room.you);
+  const controlsOn =
+    inGame &&
+    room.snapshot?.status === "playing" &&
+    self?.alive !== false;
+
+  usePlayerControls(controlsOn ? room : null);
 
   return (
     <>
-      <GameSession room={room} zoneEnabled={false} themeId={themeId} />
+      {introDone ? null : <Intro onPlay={() => setIntroDone(true)} />}
+      {introDone ? (
+        <GameSession
+          room={room}
+          zoneEnabled={false}
+          themeId={themeId}
+          onReplayIntro={() => setIntroDone(false)}
+        />
+      ) : null}
       {inGame ? null : (
         <button
           type="button"
@@ -92,8 +152,10 @@ export default function GameFrame() {
         fullscreen={fullscreen}
         onToggleFullscreen={toggleFullscreen}
         onExit={inGame ? exitToMenu : null}
+        contrast={contrast}
+        onToggleContrast={() => setContrast((value) => !value)}
       />
-      {inGame ? (
+      {controlsOn ? (
         <TouchControls onDirection={room.setDirection} onBomb={room.pressBomb} />
       ) : null}
     </>

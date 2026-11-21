@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { THEMES } from "./assets";
 import styles from "./MusicToggle.module.css";
+import { isSfxEnabled, setSfxEnabled } from "./sfx";
 import { useBackgroundMusic } from "./useBackgroundMusic";
 
 function isSpaceKey(event) {
@@ -16,10 +17,13 @@ export default function MusicToggle({
   fullscreen = false,
   onToggleFullscreen,
   onExit = null,
+  contrast = false,
+  onToggleContrast,
 }) {
   const { muted, playing, track, tracks, refresh, toggleMute, selectTrack } =
     useBackgroundMusic();
   const [open, setOpen] = useState(false);
+  const [sfxOn, setSfxOn] = useState(() => isSfxEnabled());
   const rootRef = useRef(null);
   const trackLabel = track
     ? track.artist
@@ -84,6 +88,16 @@ export default function MusicToggle({
           >
             {fullscreen ? "Zamknij pełny ekran" : "Pełny ekran"}
           </button>
+          <button
+            type="button"
+            className={styles.menuItem}
+            role="menuitemcheckbox"
+            aria-checked={contrast}
+            onClick={() => onToggleContrast?.()}
+            onKeyDown={keepSpaceForBombs}
+          >
+            {contrast ? "Wyłącz wysoki kontrast" : "Włącz wysoki kontrast"}
+          </button>
           {onExit ? (
             <button
               type="button"
@@ -112,6 +126,19 @@ export default function MusicToggle({
               <span>{theme.name}</span>
             </button>
           ))}
+          <button
+            type="button"
+            className={styles.menuItem}
+            role="menuitemcheckbox"
+            aria-checked={sfxOn}
+            onClick={() => {
+              setSfxEnabled(!sfxOn);
+              setSfxOn(!sfxOn);
+            }}
+            onKeyDown={keepSpaceForBombs}
+          >
+            {sfxOn ? "Wyłącz efekty dźwiękowe" : "Włącz efekty dźwiękowe"}
+          </button>
           <button
             type="button"
             className={styles.menuItem}

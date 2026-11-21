@@ -1,4 +1,4 @@
-# Bomb-It
+# Bomb It
 
 Gra w labirynt: stawiasz bomby, niszczysz skrzynki i starasz się przeżyć dłużej niż trzy boty.
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./EndScreen.module.css";
+import ChatBar from "./ChatBar";
 import MultiEndPanel from "./MultiEndPanel";
 import { playerPoseSrc } from "./assets";
 import {
@@ -41,6 +42,12 @@ export default function EndScreen({
   onRestart,
   onExit,
   multi = null,
+  mode = "classic",
+  winningTeam = null,
+  sessionWins = null,
+  sessionScores = null,
+  chat = [],
+  onSendChat = null,
 }) {
   const buttonRef = useRef(null);
   const restartedRef = useRef(false);
@@ -108,7 +115,38 @@ export default function EndScreen({
           <h1 id="end-heading" className={styles.heading} data-status={status}>
             {heading}
           </h1>
-          <p className={styles.survivors}>{survivorSummary(actors, you, status)}</p>
+          <p className={styles.survivors}>
+            {mode === "teams" && winningTeam != null
+              ? `Wygrała drużyna ${winningTeam === 0 ? "A" : "B"}.`
+              : survivorSummary(actors, you, status)}
+          </p>
+          {sessionWins && Object.keys(sessionWins).length > 0 ? (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <caption>Wygrane w sesji</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Gracz</th>
+                    <th scope="col">Wygrane</th>
+                    {sessionScores ? <th scope="col">Suma punktów</th> : null}
+                  </tr>
+                </thead>
+                <tbody>
+                  {actors
+                    .filter((actor) => actor.kind === "player")
+                    .map((actor) => (
+                      <tr key={actor.id}>
+                        <th scope="row">{actor.name}</th>
+                        <td>{sessionWins[actor.id] ?? 0}</td>
+                        {sessionScores ? (
+                          <td>{sessionScores[actor.id] ?? 0}</td>
+                        ) : null}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
           <div className={styles.elimination}>
             <p className={styles.sectionLabel}>Kolejność eliminacji</p>
             {fallen.length === 0 ? (
@@ -190,6 +228,9 @@ export default function EndScreen({
                 </tbody>
               </table>
             </div>
+          ) : null}
+          {multi || onSendChat ? (
+            <ChatBar chat={chat} you={you} onSend={onSendChat ?? multi?.onSendChat} compact />
           ) : null}
           <div className={styles.actions}>
             {multi ? (

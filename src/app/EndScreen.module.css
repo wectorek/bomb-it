@@ -294,3 +294,7 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+:fullscreen .card {
+  zoom: 1.2;
+}

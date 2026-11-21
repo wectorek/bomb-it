@@ -1,25 +1,72 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import styles from "./page.module.css";
 import Arena from "./Arena";
 import { createMapBorder } from "./board";
 import { BOARD_SIZE } from "./config";
 import EndScreen from "./EndScreen";
+import FinaleBanner from "./FinaleBanner";
+import FinaleRain from "./FinaleRain";
 import Hud from "./Hud";
+import { useGameSfx } from "./useGameSfx";
 import { useServerClock } from "./useRoom";
 
-export default function GameBoard({ snapshot, you, clock, themeId, onRestart, onExit, multi }) {
+function countdownLabel(serverNow, until) {
+  if (until == null || serverNow >= until) {
+    return null;
+  }
+  const left = Math.ceil((until - serverNow) / 1000);
+  if (left > 3) {
+    return null;
+  }
+  if (left <= 0) {
+    return "Start!";
+  }
+  return String(left);
+}
+
+export default function GameBoard({
+  snapshot,
+  you,
+  clock,
+  themeId,
+  onRestart,
+  onExit,
+  multi,
+  onSendChat = null,
+}) {
   const borders = useMemo(() => createMapBorder(BOARD_SIZE), []);
   const serverNow = useServerClock(clock);
+  const [spectateId, setSpectateId] = useState(null);
+  useGameSfx(snapshot, you, serverNow);
+
+  const self = (snapshot.actors ?? []).find((actor) => actor.id === you);
+  const alivePlayers = (snapshot.actors ?? []).filter(
+    (actor) => actor.alive && actor.position,
+  );
+  const spectating =
+    self && !self.alive && snapshot.status === "playing"
+      ? alivePlayers.find((actor) => actor.id === spectateId) ??
+        alivePlayers[0] ??
+        null
+      : null;
+
+  const showEndOverlay = snapshot.status !== "playing";
+  const countdown = countdownLabel(serverNow, snapshot.countdownUntil);
+
   const bombs = [];
   const grenades = [];
+  const previewCells = [];
 
   for (const charge of snapshot.bombs ?? []) {
     if (charge.kind === "grenade") {
       grenades.push(charge);
     } else {
       bombs.push(charge);
+    }
+    for (const cell of charge.previewCells ?? []) {
+      previewCells.push(cell);
     }
   }
 
@@ -45,7 +92,37 @@ export default function GameBoard({ snapshot, you, clock, themeId, onRestart, on
 
   return (
     <div className={styles.gameWrapper}>
-      <Hud actors={snapshot.actors ?? []} clock={clock} />
+      {snapshot.finale ? <FinaleRain /> : null}
+      {snapshot.finale && snapshot.status === "playing" ? <FinaleBanner /> : null}
+      <Hud
+        actors={snapshot.actors ?? []}
+        clock={clock}
+        mode={snapshot.modeEffective}
+        finaleStartsAt={snapshot.finaleStartsAt}
+        finaleActive={Boolean(snapshot.finale)}
+        serverNow={serverNow}
+      />
+      {spectating ? (
+        <div className={styles.spectatorBar} role="status">
+          <span>
+            Obserwujesz: <strong>{spectating.name}</strong>
+          </span>
+          <div className={styles.spectatorButtons}>
+            {alivePlayers.map((actor) => (
+              <button
+                key={actor.id}
+                type="button"
+                className={`${styles.menuButtonSecondary} ${
+                  spectating.id === actor.id ? styles.choiceOn : ""
+                }`}
+                onClick={() => setSpectateId(actor.id)}
+              >
+                {actor.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <Arena
         walls={snapshot.walls ?? []}
         borders={borders}
@@ -55,10 +132,21 @@ export default function GameBoard({ snapshot, you, clock, themeId, onRestart, on
         bonuses={snapshot.bonuses ?? []}
         toasts={toasts}
         explosionCells={explosionCells}
+        previewCells={previewCells}
+        drops={(snapshot.drops ?? []).filter((drop) => drop.landAt > serverNow)}
+        mess={snapshot.mess ?? []}
+        serverNow={serverNow}
         zoneRadius={snapshot.zone?.radius ?? null}
+        hillCells={snapshot.hillCells ?? []}
         themeId={themeId}
+        focusActorId={spectating?.id ?? you}
       />
-      {snapshot.status === "playing" ? null : (
+      {countdown ? (
+        <p className={styles.countdown} aria-live="assertive">
+          {countdown}
+        </p>
+      ) : null}
+      {showEndOverlay ? (
         <EndScreen
           status={snapshot.status}
           actors={snapshot.actors ?? []}
@@ -68,8 +156,14 @@ export default function GameBoard({ snapshot, you, clock, themeId, onRestart, on
           onRestart={onRestart}
           onExit={onExit}
           multi={multi}
+          mode={snapshot.modeEffective}
+          winningTeam={snapshot.winningTeam}
+          sessionWins={snapshot.sessionWins}
+          sessionScores={snapshot.sessionScores}
+          chat={snapshot.chat}
+          onSendChat={onSendChat ?? multi?.onSendChat}
         />
-      )}
+      ) : null}
     </div>
   );
 }

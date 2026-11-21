@@ -18,6 +18,32 @@
   }
 }
 
+.teamRing {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 4px var(--team),
+    0 0 0 7px #1a1208,
+    0 0 16px var(--team);
+}
+
+.teamBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 2;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 2px solid #1a1208;
+  background: var(--team);
+  color: #1a1208;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spriteBob {
     animation: none;

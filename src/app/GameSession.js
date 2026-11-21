@@ -4,6 +4,8 @@ import { useState } from "react";
 import styles from "./page.module.css";
 import GameBoard from "./GameBoard";
 import AdvancedSettings, { DEFAULT_ADVANCED } from "./AdvancedSettings";
+import { teamForSeat } from "./teams";
+import ChatBar from "./ChatBar";
 
 const COLORS = [
   { id: "blue", label: "Niebieski", hex: "#1e88e5" },
@@ -27,7 +29,7 @@ function BackButton({ onClick, children = "← Wróć" }) {
   );
 }
 
-function Menu({ room, zoneEnabled }) {
+function Menu({ room, zoneEnabled, onReplayIntro }) {
   const [view, setView] = useState("main");
   const [botCount, setBotCount] = useState(3);
   const [color, setColor] = useState("blue");
@@ -38,7 +40,13 @@ function Menu({ room, zoneEnabled }) {
 
   return (
     <section className={styles.menu}>
-      <h1 className={styles.menuTitle}>Bomb-It</h1>
+      <h1 className={styles.menuTitle}>Bomb It</h1>
+      {view === "main" ? (
+        <>
+          <div className={styles.menuBackdrop} aria-hidden="true" />
+          <div className={styles.menuBackdropTint} aria-hidden="true" />
+        </>
+      ) : null}
       {room.error ? <p className={styles.menuError}>{room.error}</p> : null}
 
       {view === "main" ? (
@@ -52,11 +60,77 @@ function Menu({ room, zoneEnabled }) {
           </button>
           <button
             type="button"
-            className={styles.menuButtonSecondary}
+            className={styles.startButton}
             onClick={() => setView("multi")}
           >
             Multiplayer
           </button>
+          <button
+            type="button"
+            className={styles.menuButtonSecondary}
+            onClick={() => setView("howto")}
+          >
+            Jak grać
+          </button>
+          <button
+            type="button"
+            className={styles.menuButtonSecondary}
+            onClick={() => setView("authors")}
+          >
+            Autorzy
+          </button>
+        </div>
+      ) : null}
+
+      {view === "howto" ? (
+        <div className={styles.menuStack}>
+          <p className={styles.sectionLabel}>Sterowanie</p>
+          <p>
+            Strzałki lub WASD — ruch. Spacja — bomba (przytrzymaj kierunek dla
+            granatu z bonusu).
+          </p>
+          <p className={styles.sectionLabel}>Bonusy</p>
+          <p>
+            Zbieraj je ze zniszczonych ścian: szybkość, zasięg, nietykalność,
+            granat, spowolnienie wrogów i inne.
+          </p>
+          <p className={styles.sectionLabel}>Strefa</p>
+          <p>
+            Opcjonalnie kurczy się bezpieczny kwadrat — stój w środku lub
+            uciekaj przed burzą.
+          </p>
+          <p className={styles.sectionLabel}>Tryb rozwolnienia</p>
+          <p>
+            W ustawieniach można włączyć go po wybranym czasie, na przykład po
+            2 minutach, albo zostawić wyłączony. Gdy ruszy, arena się czyści i
+            spadają kawałki — unikaj zabrudzonych pól.
+          </p>
+          <p className={styles.sectionLabel}>Drużyny 2×2</p>
+          <p>
+            Osoby z jednej drużyny mają ten sam kolor ramki i literę: A albo B.
+          </p>
+          <BackButton onClick={() => setView("main")}>← Menu główne</BackButton>
+        </div>
+      ) : null}
+
+      {view === "authors" ? (
+        <div className={styles.menuStack}>
+          <p className={styles.sectionLabel}>
+            Autor główny - Sonnet 5.5, Composer 2.5 i Grok 4.7
+          </p>
+          <p className={styles.sectionLabel}>
+            Autorzy niegłówni: Cieślov, wektoreczki.
+          </p>
+          <button
+            type="button"
+            className={styles.startButton}
+            onClick={onReplayIntro}
+          >
+            Odtwórz animację
+          </button>
+          <BackButton onClick={() => setView("main")}>
+            ← Menu główne
+          </BackButton>
         </div>
       ) : null}
 
@@ -206,12 +280,24 @@ function Lobby({ room }) {
         {room.code}
       </p>
       <ul className={styles.seatList}>
-        {actors.map((actor) => (
-          <li key={actor.id} className={styles.seatRow}>
+        {actors.map((actor, index) => {
+          const team =
+            room.snapshot?.settings?.mode === "teams" ? teamForSeat(index) : null;
+          return (
+          <li
+            key={actor.id}
+            className={styles.seatRow}
+            style={team ? { boxShadow: `inset 4px 0 0 ${team.color}` } : undefined}
+          >
             <span
               className={styles.seatDot}
               style={{ backgroundColor: hexOf(actor.color) }}
             />
+            {team ? (
+              <span className={styles.seatTeam} style={{ "--team": team.color }}>
+                {team.short}
+              </span>
+            ) : null}
             {actor.name}
             {actor.id === room.you ? " (Ty)" : ""}
             {actor.id === room.snapshot?.host ? " · host" : ""}
@@ -225,7 +311,8 @@ function Lobby({ room }) {
               </button>
             ) : null}
           </li>
-        ))}
+          );
+        })}
       </ul>
       {isHost ? (
         <button
@@ -247,6 +334,12 @@ function Lobby({ room }) {
           onChange={(settings) => room.updateSettings({ settings })}
         />
       ) : null}
+      <ChatBar
+        chat={room.snapshot?.chat}
+        you={room.you}
+        onSend={room.sendChat}
+        compact
+      />
       <div className={styles.menuStack}>
         {isHost ? (
           <>
@@ -283,7 +376,12 @@ function ClosedNotice({ onBack }) {
   );
 }
 
-export default function GameSession({ room, zoneEnabled, themeId }) {
+export default function GameSession({
+  room,
+  zoneEnabled,
+  themeId,
+  onReplayIntro,
+}) {
   if (room.connection === "connecting") {
     return (
       <section className={styles.menu}>
@@ -297,7 +395,13 @@ export default function GameSession({ room, zoneEnabled, themeId }) {
   }
 
   if (room.connection !== "live" || !room.snapshot) {
-    return <Menu room={room} zoneEnabled={zoneEnabled} />;
+    return (
+      <Menu
+        room={room}
+        zoneEnabled={zoneEnabled}
+        onReplayIntro={onReplayIntro}
+      />
+    );
   }
 
   if (room.snapshot.status === "lobby") {
@@ -320,6 +424,7 @@ export default function GameSession({ room, zoneEnabled, themeId }) {
           onStart: room.restart,
           onTransfer: room.transferHost,
           onUpdate: room.updateSettings,
+          onSendChat: room.sendChat,
         }
       : null;
 
@@ -332,6 +437,7 @@ export default function GameSession({ room, zoneEnabled, themeId }) {
       themeId={themeId}
       onRestart={room.restart}
       onExit={room.disconnect}
+      onSendChat={room.sendChat}
     />
   );
 }
