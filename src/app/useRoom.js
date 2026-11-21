@@ -123,24 +123,34 @@ export function useRoom() {
   useEffect(() => () => closeSocket(), [closeSocket]);
 
   const play = useCallback(
-    ({ nick = "Ty", zone = false } = {}) => {
+    ({
+      nick = "Ty",
+      zone = false,
+      botCount = 3,
+      color = "blue",
+      settings = null,
+    } = {}) => {
       connect({
         type: "create",
         nick,
         zone: Boolean(zone),
         fillBots: true,
+        botCount,
+        color,
+        settings,
       });
     },
     [connect],
   );
 
   const createRoom = useCallback(
-    ({ nick = "Ty", zone = false, fillBots = false } = {}) => {
+    ({ nick = "Ty", zone = false, fillBots = false, settings = null } = {}) => {
       connect({
         type: "create",
         nick,
         zone: Boolean(zone),
         fillBots: Boolean(fillBots),
+        settings,
         lobby: true,
       });
     },
@@ -165,6 +175,11 @@ export function useRoom() {
     }
     ws.send(JSON.stringify(payload));
   }, []);
+
+  const setFillBots = useCallback(
+    (fillBots) => send({ type: "settings", fillBots }),
+    [send],
+  );
 
   const restart = useCallback(() => {
     seqRef.current = 0;
@@ -237,6 +252,7 @@ export function useRoom() {
     createRoom,
     join,
     restart,
+    setFillBots,
     setDirection,
     pressBomb,
     disconnect,

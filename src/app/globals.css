@@ -1,13 +1,19 @@
 :root {
-  --background: #ffffff;
+  --background: #f4f1ea;
   --foreground: #171717;
+  --text-primary: #171717;
+  --panel: #ffffff;
+  --accent: #f0c14a;
+  --accent-text: #2a1c08;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root[data-theme="dark"] {
+  --background: #0e1114;
+  --foreground: #ededed;
+  --text-primary: #ededed;
+  --panel: #1b2026;
+  color-scheme: dark;
 }
 
 html {
@@ -42,8 +48,3 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}

@@ -9,7 +9,7 @@ import EndScreen from "./EndScreen";
 import Hud from "./Hud";
 import { useServerClock } from "./useRoom";
 
-export default function GameBoard({ snapshot, you, clock, themeId, onRestart }) {
+export default function GameBoard({ snapshot, you, clock, themeId, onRestart, onExit }) {
   const borders = useMemo(() => createMapBorder(BOARD_SIZE), []);
   const serverNow = useServerClock(clock);
   const bombs = [];
@@ -43,8 +43,24 @@ export default function GameBoard({ snapshot, you, clock, themeId, onRestart }) 
     (toast) => toast.until == null || toast.until > serverNow,
   );
 
+  function exitToMenu(event) {
+    event.currentTarget.blur();
+    if (!window.confirm("Przerwać grę i wrócić do menu głównego?")) {
+      return;
+    }
+    onExit?.();
+  }
+
   return (
     <div className={styles.gameWrapper}>
+      <button
+        type="button"
+        className={`${styles.fullscreenButton} ${styles.exitButton}`}
+        onClick={exitToMenu}
+        onKeyDown={(event) => event.preventDefault()}
+      >
+        Menu główne
+      </button>
       <Hud actors={snapshot.actors ?? []} clock={clock} />
       <Arena
         walls={snapshot.walls ?? []}
@@ -66,6 +82,7 @@ export default function GameBoard({ snapshot, you, clock, themeId, onRestart }) 
           startedAt={snapshot.startedAt}
           serverNow={serverNow}
           onRestart={onRestart}
+          onExit={onExit}
         />
       )}
     </div>

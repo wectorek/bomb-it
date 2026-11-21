@@ -10,10 +10,9 @@ function isSpaceKey(event) {
 }
 
 export default function MusicToggle({
-  zoneEnabled = false,
-  onZoneChange,
   themeId = "bee",
   onThemeChange,
+  showBoardThemes = true,
 }) {
   const { muted, playing, track, tracks, refresh, toggleMute, selectTrack } =
     useBackgroundMusic();
@@ -31,19 +30,11 @@ export default function MusicToggle({
         setOpen(false);
         return;
       }
-      if (event.key !== "m" && event.key !== "M") {
-        return;
-      }
-      if (event.repeat) {
-        return;
-      }
-      event.preventDefault();
-      toggleMute();
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [toggleMute]);
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -67,7 +58,10 @@ export default function MusicToggle({
   }
 
   return (
-    <div className={styles.root} ref={rootRef}>
+    <div
+      className={styles.root}
+      ref={rootRef}
+    >
       {playing ? (
         <span className={styles.nowPlaying} title={trackLabel}>
           {trackLabel}
@@ -75,17 +69,7 @@ export default function MusicToggle({
       ) : null}
       {open ? (
         <div className={styles.menu} role="menu" aria-label="Opcje">
-          <button
-            type="button"
-            className={styles.menuItem}
-            role="menuitemcheckbox"
-            aria-checked={zoneEnabled}
-            onClick={() => onZoneChange?.(!zoneEnabled)}
-            onKeyDown={keepSpaceForBombs}
-          >
-            {zoneEnabled ? "Wyłącz strefę" : "Włącz strefę"}
-          </button>
-          {THEMES.map((theme) => (
+          {(showBoardThemes ? THEMES : []).map((theme) => (
             <button
               key={theme.id}
               type="button"
@@ -143,7 +127,7 @@ export default function MusicToggle({
       <button
         type="button"
         className={styles.button}
-        aria-label="Opcje: muzyka i strefa"
+        aria-label="Opcje: muzyka"
         aria-expanded={open}
         aria-haspopup="menu"
         title={trackLabel}

@@ -88,14 +88,19 @@ export default function Hud({ actors = [], clock = null }) {
   return (
     <div className={styles.hud}>
       {actors.map((actor) => (
-        <span key={actor.id} className={styles.hudActor}>
+        <span
+          key={actor.id}
+          className={styles.hudActor}
+          style={{ "--dot": HUD_DOT[actor.color] ?? actor.color }}
+        >
           <span
             className={styles.hudDot}
             style={{ backgroundColor: HUD_DOT[actor.color] ?? actor.color }}
           />
           <span className={actor.alive ? undefined : styles.hudDead}>
-            {actor.name}: {livesLabel(actor.lives)}
+            {actor.name}
           </span>
+          <span className={styles.hudLives}>{livesLabel(actor.lives)}</span>
           {actor.alive ? (
             <EffectList actor={actor} clock={clock} serverNow={serverNow} />
           ) : null}

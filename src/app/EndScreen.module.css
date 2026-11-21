@@ -232,3 +232,19 @@
     animation: none;
   }
 }
+
+.menuLink {
+  appearance: none;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 2px solid #d9c7a4;
+  background: transparent;
+  color: #f6f1e8;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.menuLink:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

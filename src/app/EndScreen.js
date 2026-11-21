@@ -38,6 +38,7 @@ export default function EndScreen({
   startedAt,
   serverNow,
   onRestart,
+  onExit,
 }) {
   const buttonRef = useRef(null);
   const restartedRef = useRef(false);
@@ -200,6 +201,17 @@ export default function EndScreen({
             >
               Zagraj ponownie
             </button>
+            {onExit ? (
+              <button
+                type="button"
+                className={styles.menuLink}
+                onClick={onExit}
+                onKeyDown={blockActivationKey}
+                onKeyUp={blockActivationKey}
+              >
+                Menu główne
+              </button>
+            ) : null}
             <p className={styles.hint}>Enter zaczyna nową rundę.</p>
           </div>
         </div>

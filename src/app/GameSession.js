@@ -3,97 +3,189 @@
 import { useState } from "react";
 import styles from "./page.module.css";
 import GameBoard from "./GameBoard";
+import AdvancedSettings, { DEFAULT_ADVANCED } from "./AdvancedSettings";
+
+const COLORS = [
+  { id: "blue", label: "Niebieski", hex: "#1e88e5" },
+  { id: "red", label: "Czerwony", hex: "#e53935" },
+  { id: "green", label: "Zielony", hex: "#43a047" },
+  { id: "purple", label: "Fioletowy", hex: "#8e24aa" },
+];
+
+const hexOf = (color) => COLORS.find((c) => c.id === color)?.hex ?? color;
 
 function cleanNick(value) {
   const trimmed = value.replace(/\s+/g, " ").trim().slice(0, 16);
-  return trimmed || "Ty";
+  return trimmed || "Gracz";
 }
 
-function Menu({
-  room,
-  zoneEnabled,
-  nick,
-  setNick,
-  joinCode,
-  setJoinCode,
-  roomOpen,
-  setRoomOpen,
-  botsEnabled,
-  setBotsEnabled,
-}) {
+function BackButton({ onClick, children = "← Wróć" }) {
+  return (
+    <button type="button" className={styles.menuButtonSecondary} onClick={onClick}>
+      {children}
+    </button>
+  );
+}
+
+function Menu({ room, zoneEnabled }) {
+  const [view, setView] = useState("main");
+  const [botCount, setBotCount] = useState(3);
+  const [color, setColor] = useState("blue");
+  const [nick, setNick] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [advanced, setAdvanced] = useState(DEFAULT_ADVANCED);
   const name = cleanNick(nick);
 
   return (
     <section className={styles.menu}>
       <h1 className={styles.menuTitle}>Bomb-It</h1>
       {room.error ? <p className={styles.menuError}>{room.error}</p> : null}
-      <label className={styles.menuField}>
-        <span>Nick</span>
-        <input
-          className={styles.menuInput}
-          value={nick}
-          maxLength={16}
-          onChange={(event) => setNick(event.target.value)}
-        />
-      </label>
-      <div className={styles.menuActions}>
-        <button
-          type="button"
-          className={styles.menuButton}
-          onClick={() => room.play({ nick: name, zone: zoneEnabled })}
-        >
-          Graj
-        </button>
-        <button
-          type="button"
-          className={styles.menuButtonSecondary}
-          onClick={() => setRoomOpen((open) => !open)}
-        >
-          Pokój
-        </button>
-      </div>
-      {roomOpen ? (
-        <div className={styles.roomBox}>
+
+      {view === "main" ? (
+        <div className={styles.menuStack}>
           <button
             type="button"
-            className={botsEnabled ? styles.menuButton : styles.menuButtonSecondary}
-            aria-pressed={botsEnabled}
-            onClick={() => setBotsEnabled((enabled) => !enabled)}
+            className={styles.startButton}
+            onClick={() => setView("bots")}
           >
-            {botsEnabled ? "Boty: włączone" : "Boty: wyłączone"}
+            Gra z botami
           </button>
           <button
             type="button"
-            className={styles.menuButton}
+            className={styles.menuButtonSecondary}
+            onClick={() => setView("multi")}
+          >
+            Multiplayer
+          </button>
+        </div>
+      ) : null}
+
+      {view === "bots" ? (
+        <div className={styles.menuStack}>
+          <p className={styles.sectionLabel}>Liczba botów</p>
+          <div className={styles.choiceRow}>
+            {[1, 2, 3].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`${styles.choice} ${n === botCount ? styles.choiceOn : ""}`}
+                aria-pressed={n === botCount}
+                onClick={() => setBotCount(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <p className={styles.sectionLabel}>Twój kolor</p>
+          <div className={styles.choiceRow}>
+            {COLORS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                title={c.label}
+                aria-label={c.label}
+                aria-pressed={c.id === color}
+                className={`${styles.swatch} ${c.id === color ? styles.swatchOn : ""}`}
+                style={{ "--swatch": c.hex }}
+                onClick={() => setColor(c.id)}
+              />
+            ))}
+          </div>
+          <AdvancedSettings value={advanced} onChange={setAdvanced} />
+          <button
+            type="button"
+            className={styles.startButton}
             onClick={() =>
-              room.createRoom({
-                nick: name,
-                zone: zoneEnabled,
-                fillBots: botsEnabled,
-              })
+              room.play({ nick: "Ty", botCount, color, settings: advanced })
             }
           >
-            Utwórz pokój
+            Start gry
           </button>
+          <BackButton onClick={() => setView("main")}>
+            ← Menu główne
+          </BackButton>
+        </div>
+      ) : null}
+
+      {view === "multi" || view === "join" || view === "host" ? (
+        <div className={styles.menuStack}>
           <label className={styles.menuField}>
-            <span>Kod</span>
+            <span>Nick</span>
             <input
               className={styles.menuInput}
-              value={joinCode}
-              maxLength={4}
-              autoCapitalize="characters"
-              onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
+              value={nick}
+              maxLength={16}
+              placeholder="Gracz"
+              onChange={(event) => setNick(event.target.value)}
             />
           </label>
-          <button
-            type="button"
-            className={styles.menuButton}
-            onClick={() =>
-              room.join({ code: joinCode.trim(), nick: name })
-            }
-          >
-            Dołącz
-          </button>
+          {view === "host" ? (
+            <>
+              <AdvancedSettings value={advanced} onChange={setAdvanced} />
+              <button
+                type="button"
+                className={styles.startButton}
+                onClick={() =>
+                  room.createRoom({
+                    nick: name,
+                    fillBots: true,
+                    settings: advanced,
+                  })
+                }
+              >
+                Utwórz grę
+              </button>
+              <BackButton onClick={() => setView("multi")}>
+                ← Wróć do wyboru
+              </BackButton>
+            </>
+          ) : view === "multi" ? (
+            <>
+              <button
+                type="button"
+                className={styles.menuButtonSecondary}
+                onClick={() => setView("join")}
+              >
+                Dołącz do gry
+              </button>
+              <button
+                type="button"
+                className={styles.startButton}
+                onClick={() => setView("host")}
+              >
+                Utwórz grę multiplayer
+              </button>
+              <BackButton onClick={() => setView("main")}>
+                ← Menu główne
+              </BackButton>
+            </>
+          ) : (
+            <>
+              <label className={styles.menuField}>
+                <span>Kod gry</span>
+                <input
+                  className={styles.menuInput}
+                  value={joinCode}
+                  maxLength={4}
+                  autoCapitalize="characters"
+                  onChange={(event) =>
+                    setJoinCode(event.target.value.toUpperCase())
+                  }
+                />
+              </label>
+              <button
+                type="button"
+                className={styles.startButton}
+                disabled={joinCode.trim().length === 0}
+                onClick={() => room.join({ code: joinCode.trim(), nick: name })}
+              >
+                Dołącz
+              </button>
+              <BackButton onClick={() => setView("multi")}>
+                ← Wróć do wyboru
+              </BackButton>
+            </>
+          )}
         </div>
       ) : null}
     </section>
@@ -102,30 +194,60 @@ function Menu({
 
 function Lobby({ room }) {
   const actors = room.snapshot?.actors ?? [];
+  const isHost = actors[0]?.id === room.you;
+  const fillBots = room.snapshot?.fillBots === true;
+  const canStart = isHost && actors.length >= 2;
 
   return (
     <section className={styles.menu}>
-      <h1 className={styles.menuTitle}>Pokój</h1>
-      <p className={styles.code} aria-label="Kod pokoju">
+      <h1 className={styles.menuTitle}>Multiplayer</h1>
+      <p className={styles.sectionLabel}>Kod gry</p>
+      <p className={styles.code} aria-label="Kod gry">
         {room.code}
       </p>
-      <p>{room.snapshot?.fillBots ? "Start doda boty." : "Bez botów."}</p>
       <ul className={styles.seatList}>
         {actors.map((actor) => (
-          <li key={actor.id}>{actor.name}</li>
+          <li key={actor.id} className={styles.seatRow}>
+            <span
+              className={styles.seatDot}
+              style={{ backgroundColor: hexOf(actor.color) }}
+            />
+            {actor.name}
+            {actor.id === room.you ? " (Ty)" : ""}
+          </li>
         ))}
       </ul>
-      <div className={styles.menuActions}>
-        <button type="button" className={styles.menuButton} onClick={room.restart}>
-          Start
-        </button>
+      {isHost ? (
         <button
           type="button"
-          className={styles.menuButtonSecondary}
-          onClick={room.disconnect}
+          className={fillBots ? styles.menuButton : styles.menuButtonSecondary}
+          aria-pressed={fillBots}
+          onClick={() => room.setFillBots(!fillBots)}
         >
-          Wyjdź
+          {fillBots
+            ? "Boty uzupełniają graczy: tak"
+            : "Boty uzupełniają graczy: nie"}
         </button>
+      ) : (
+        <p>{fillBots ? "Wolne miejsca zajmą boty." : "Bez botów."}</p>
+      )}
+      <div className={styles.menuStack}>
+        {isHost ? (
+          <>
+            <button
+              type="button"
+              className={styles.startButton}
+              disabled={!canStart}
+              onClick={room.restart}
+            >
+              Start gry
+            </button>
+            {canStart ? null : <p>Czekam na co najmniej jednego gracza…</p>}
+          </>
+        ) : (
+          <p>Czekam, aż gospodarz rozpocznie grę…</p>
+        )}
+        <BackButton onClick={room.disconnect}>← Wyjdź</BackButton>
       </div>
     </section>
   );
@@ -146,11 +268,6 @@ function ClosedNotice({ onBack }) {
 }
 
 export default function GameSession({ room, zoneEnabled, themeId }) {
-  const [nick, setNick] = useState("Ty");
-  const [joinCode, setJoinCode] = useState("");
-  const [roomOpen, setRoomOpen] = useState(false);
-  const [botsEnabled, setBotsEnabled] = useState(false);
-
   if (room.connection === "connecting") {
     return (
       <section className={styles.menu}>
@@ -164,20 +281,7 @@ export default function GameSession({ room, zoneEnabled, themeId }) {
   }
 
   if (room.connection !== "live" || !room.snapshot) {
-    return (
-      <Menu
-        room={room}
-        zoneEnabled={zoneEnabled}
-        nick={nick}
-        setNick={setNick}
-        joinCode={joinCode}
-        setJoinCode={setJoinCode}
-        roomOpen={roomOpen}
-        setRoomOpen={setRoomOpen}
-        botsEnabled={botsEnabled}
-        setBotsEnabled={setBotsEnabled}
-      />
-    );
+    return <Menu room={room} zoneEnabled={zoneEnabled} />;
   }
 
   if (room.snapshot.status === "lobby") {
@@ -191,6 +295,7 @@ export default function GameSession({ room, zoneEnabled, themeId }) {
       clock={room.clock}
       themeId={themeId}
       onRestart={room.restart}
+      onExit={room.disconnect}
     />
   );
 }
