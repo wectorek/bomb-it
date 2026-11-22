@@ -119,6 +119,7 @@ export default function Hud({
   clock = null,
   mode = "classic",
   finaleStartsAt = null,
+  finaleWhenTwo = false,
   finaleActive = false,
   serverNow: serverNowProp = null,
 }) {
@@ -136,6 +137,8 @@ export default function Hud({
         <p className={styles.hudTimer}>
           Rozwolnienie za {formatDuration(finaleLeft)}
         </p>
+      ) : finaleWhenTwo && !finaleActive ? (
+        <p className={styles.hudTimer}>Rozwolnienie przy dwóch żywych</p>
       ) : null}
       {teamed
         ? [0, 1].map((id) => {

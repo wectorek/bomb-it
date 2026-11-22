@@ -99,6 +99,7 @@ export default function GameBoard({
         clock={clock}
         mode={snapshot.modeEffective}
         finaleStartsAt={snapshot.finaleStartsAt}
+        finaleWhenTwo={snapshot.settings?.finaleOnDuel === true}
         finaleActive={Boolean(snapshot.finale)}
         serverNow={serverNow}
       />

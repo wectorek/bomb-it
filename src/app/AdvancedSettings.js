@@ -6,6 +6,7 @@ export const DEFAULT_ADVANCED = {
   zone: false,
   finale: false,
   finaleAfterSec: 0,
+  finaleOnDuel: false,
   mode: "classic",
   botDifficulty: "normal",
   zoneCellSec: 20,
@@ -118,9 +119,16 @@ export default function AdvancedSettings({ value, onChange }) {
   const set = (patch) => onChange({ ...value, ...patch });
   const mode = modeOf(value);
   const finaleAfterSec = finaleSeconds(value);
-  const finaleOn = finaleAfterSec > 0;
+  const finaleOnDuel = value.finaleOnDuel === true;
+  const finaleOn = finaleAfterSec > 0 && !finaleOnDuel;
   const finaleMinutes = Math.max(1, Math.round(finaleAfterSec / 60) || 2);
+  const finaleChoice = finaleOnDuel ? 2 : finaleOn ? 1 : 0;
   const modeLabel = MODES.find(([id]) => id === mode)?.[1] ?? "Klasyczny";
+  const finaleLabel = finaleOnDuel
+    ? "rozwolnienie przy dwóch graczach"
+    : finaleOn
+      ? `rozwolnienie po ${finaleMinutes} min`
+      : "bez rozwolnienia";
 
   return (
     <details className={styles.advanced}>
@@ -129,9 +137,7 @@ export default function AdvancedSettings({ value, onChange }) {
         <span className={styles.summaryMeta}>
           {modeLabel}
           {" · "}
-          {finaleOn
-            ? `rozwolnienie po ${finaleMinutes} min`
-            : "bez rozwolnienia"}
+          {finaleLabel}
           {value.zone ? ` · strefa co ${value.zoneCellSec ?? 20} s` : ""}
         </span>
       </summary>
@@ -164,27 +170,34 @@ export default function AdvancedSettings({ value, onChange }) {
 
         <Card
           title="2. Rozwolnienie"
-          hint="Po odliczonym czasie od startu arena się czyści, spadają kawałki, a zabrudzone pola ranią. Można tego w ogóle nie włączać."
+          hint="Arena się czyści, spadają kawałki, a zabrudzone pola ranią. Start po czasie, przy dwóch żywych graczach, albo wcale."
         >
           <Choices
             options={[
               [0, "Nie włączaj"],
-              [1, "Włącz po czasie"],
+              [1, "Po czasie"],
+              [2, "Przy dwóch"],
             ]}
-            value={finaleOn ? 1 : 0}
+            value={finaleChoice}
             onChange={(flag) => {
-              if (flag === 0) {
-                set({ finale: false, finaleAfterSec: 0 });
+              if (flag === 2) {
+                set({ finale: true, finaleAfterSec: 0, finaleOnDuel: true });
                 return;
               }
-              const seconds = finaleOn ? finaleAfterSec : 120;
-              set({ finale: true, finaleAfterSec: seconds });
+              if (flag === 0) {
+                set({ finale: false, finaleAfterSec: 0, finaleOnDuel: false });
+                return;
+              }
+              const seconds = finaleAfterSec > 0 ? finaleAfterSec : 120;
+              set({ finale: true, finaleAfterSec: seconds, finaleOnDuel: false });
             }}
           />
-          <p className={`${styles.status} ${finaleOn ? styles.statusOn : ""}`}>
-            {finaleOn
-              ? `Włączy się ${finaleMinutes} min po starcie rundy.`
-              : "Wyłączone. Runda kończy się bez czyszczenia areny."}
+          <p className={`${styles.status} ${finaleChoice > 0 ? styles.statusOn : ""}`}>
+            {finaleOnDuel
+              ? "Włączy się, gdy zostaną dwie żywe osoby. Jeśli mecz zaczął się we dwójkę, czeka 30 sekund."
+              : finaleOn
+                ? `Włączy się ${finaleMinutes} min po starcie rundy.`
+                : "Wyłączone. Runda kończy się bez czyszczenia areny."}
           </p>
           {finaleOn ? (
             <label className={styles.range}>
@@ -196,7 +209,11 @@ export default function AdvancedSettings({ value, onChange }) {
                 value={finaleMinutes}
                 onChange={(event) => {
                   const seconds = Number(event.target.value) * 60;
-                  set({ finale: true, finaleAfterSec: seconds });
+                  set({
+                    finale: true,
+                    finaleAfterSec: seconds,
+                    finaleOnDuel: false,
+                  });
                 }}
               />
             </label>

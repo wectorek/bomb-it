@@ -102,8 +102,9 @@ function Menu({ room, zoneEnabled, onReplayIntro }) {
           <p className={styles.sectionLabel}>Tryb rozwolnienia</p>
           <p>
             W ustawieniach można włączyć go po wybranym czasie, na przykład po
-            2 minutach, albo zostawić wyłączony. Gdy ruszy, arena się czyści i
-            spadają kawałki — unikaj zabrudzonych pól.
+            2 minutach, gdy zostaną dwie żywe osoby, albo zostawić wyłączony.
+            Gdy ruszy, arena się czyści i spadają kawałki — unikaj zabrudzonych
+            pól.
           </p>
           <p className={styles.sectionLabel}>Drużyny 2×2</p>
           <p>
