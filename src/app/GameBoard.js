@@ -65,6 +65,9 @@ export default function GameBoard({
     } else {
       bombs.push(charge);
     }
+    if (snapshot.status !== "playing") {
+      continue;
+    }
     for (const cell of charge.previewCells ?? []) {
       previewCells.push(cell);
     }
